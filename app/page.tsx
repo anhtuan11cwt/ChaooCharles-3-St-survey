@@ -1,3 +1,14 @@
+import { Button } from "@/components/ui/button";
+
 export default function Home() {
-	return <h1 className="text-3xl font-bold underline">Xin chào thế giới!</h1>;
+	return (
+		<div className="flex flex-col items-center justify-center gap-4 min-h-screen">
+			<h1 className="text-3xl font-bold underline">Xin chào thế giới!</h1>
+			<Button>Click me</Button>
+			<Button variant="secondary">Secondary</Button>
+			<Button variant="outline">Outline</Button>
+			<Button variant="ghost">Ghost</Button>
+			<Button variant="destructive">Destructive</Button>
+		</div>
+	);
 }
