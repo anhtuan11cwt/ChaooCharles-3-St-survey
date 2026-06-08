@@ -5,6 +5,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import Container from "@/components/Container";
+import NavMenu from "@/components/layout/nav-menu";
+import { ModeToggle } from "@/components/mode-toggle";
 import SearchInput from "@/components/SearchInput";
 import { Button } from "@/components/ui/button";
 
@@ -50,11 +52,13 @@ export default function Navbar() {
 
 					<div className="hidden items-center gap-3 sm:flex">
 						<SearchInput />
+						<ModeToggle />
 						{user ? (
 							<>
 								<span className="text-sm text-muted-foreground">
 									{user.name || user.email}
 								</span>
+								<NavMenu />
 								<Button onClick={handleSignOut} size="sm" variant="outline">
 									Đăng xuất
 								</Button>
@@ -75,18 +79,21 @@ export default function Navbar() {
 						)}
 					</div>
 
-					<button
-						aria-label="Menu"
-						className="sm:hidden"
-						onClick={() => setMobileOpen(!mobileOpen)}
-						type="button"
-					>
-						{mobileOpen ? (
-							<X className="size-5" />
-						) : (
-							<Menu className="size-5" />
-						)}
-					</button>
+					<div className="flex items-center gap-1 sm:hidden">
+						<ModeToggle />
+						{user && <NavMenu />}
+						<button
+							aria-label="Menu"
+							onClick={() => setMobileOpen(!mobileOpen)}
+							type="button"
+						>
+							{mobileOpen ? (
+								<X className="size-5" />
+							) : (
+								<Menu className="size-5" />
+							)}
+						</button>
+					</div>
 				</div>
 
 				{mobileOpen && (

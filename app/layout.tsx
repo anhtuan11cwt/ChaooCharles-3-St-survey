@@ -3,6 +3,7 @@ import "./globals.css";
 import { Inter } from "next/font/google";
 import { Toaster } from "react-hot-toast";
 import Navbar from "@/components/layout/Navbar";
+import { ThemeProvider } from "@/components/theme-provider";
 import { cn } from "@/lib/utils";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
@@ -26,10 +27,17 @@ export default function RootLayout({
 			suppressHydrationWarning
 		>
 			<body className="min-h-full">
-				<main className="flex min-h-screen flex-col bg-secondary">
-					<Navbar />
-					<section className="flex-grow">{children}</section>
-				</main>
+				<ThemeProvider
+					attribute="class"
+					defaultTheme="system"
+					disableTransitionOnChange
+					enableSystem
+				>
+					<main className="flex min-h-screen flex-col bg-secondary">
+						<Navbar />
+						<section className="flex-grow">{children}</section>
+					</main>
+				</ThemeProvider>
 				<Toaster position="top-right" />
 			</body>
 		</html>
