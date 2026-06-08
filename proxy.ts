@@ -52,7 +52,7 @@ export const config = {
 	matcher: [
 		{
 			source:
-				"/((?!api/auth|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)",
+				"/((?!api/auth|api/uploadthing|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)",
 		},
 	],
 };

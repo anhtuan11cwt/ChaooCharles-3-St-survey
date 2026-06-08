@@ -1,10 +1,18 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ImageIcon, X } from "lucide-react";
+import { generateReactHelpers } from "@uploadthing/react";
+import type { OurFileRouter } from "@/app/api/uploadthing/core";
+
+const { useUploadThing } = generateReactHelpers<OurFileRouter>();
+
+import axios from "axios";
+import { Eye, ImageIcon, Loader2, PencilLine, Trash2, X } from "lucide-react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { useForm, useWatch } from "react-hook-form";
+import toast from "react-hot-toast";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -35,30 +43,50 @@ interface AddHotelFormProps {
 	hotel: HotelWithRooms | null;
 }
 
-const formSchema = z.object({
-	bar: z.boolean().optional(),
-	bikeRental: z.boolean().optional(),
-	city: z.string().optional(),
-	coffeeShop: z.boolean().optional(),
-	description: z
-		.string()
-		.min(10, { message: "Mô tả phải có ít nhất 10 ký tự" }),
-	freeParking: z.boolean().optional(),
-	freeWifi: z.boolean().optional(),
-	gym: z.boolean().optional(),
-	image: z.string().min(1, { message: "Hình ảnh là bắt buộc" }),
-	laundry: z.boolean().optional(),
-	locationDescription: z
-		.string()
-		.min(10, { message: "Mô tả vị trí phải có ít nhất 10 ký tự" }),
-	movieNight: z.boolean().optional(),
-	restaurant: z.boolean().optional(),
-	shopping: z.boolean().optional(),
-	spa: z.boolean().optional(),
-	state: z.string().optional(),
-	swimmingPool: z.boolean().optional(),
-	title: z.string().min(3, { message: "Tiêu đề phải có ít nhất 3 ký tự" }),
-});
+const formSchema = z
+	.object({
+		bar: z.boolean(),
+		bikeRental: z.boolean(),
+		city: z.string().min(1, { message: "Vui lòng chọn quận/huyện" }),
+		coffeeShop: z.boolean(),
+		description: z
+			.string()
+			.min(10, { message: "Mô tả phải có ít nhất 10 ký tự" }),
+		freeParking: z.boolean(),
+		freeWifi: z.boolean(),
+		gym: z.boolean(),
+		image: z.string().min(1, { message: "Vui lòng chọn ảnh khách sạn" }),
+		laundry: z.boolean(),
+		locationDescription: z
+			.string()
+			.min(10, { message: "Mô tả vị trí phải có ít nhất 10 ký tự" }),
+		movieNight: z.boolean(),
+		restaurant: z.boolean(),
+		shopping: z.boolean(),
+		spa: z.boolean(),
+		state: z.string().min(1, { message: "Vui lòng chọn tỉnh/thành phố" }),
+		swimmingPool: z.boolean(),
+		title: z.string().min(3, { message: "Tiêu đề phải có ít nhất 3 ký tự" }),
+	})
+	.refine(
+		(data) =>
+			data.bar ||
+			data.bikeRental ||
+			data.coffeeShop ||
+			data.freeParking ||
+			data.freeWifi ||
+			data.gym ||
+			data.laundry ||
+			data.movieNight ||
+			data.restaurant ||
+			data.shopping ||
+			data.spa ||
+			data.swimmingPool,
+		{
+			message: "Vui lòng chọn ít nhất một tiện ích",
+			path: ["amenities"],
+		},
+	);
 
 type HotelFormValues = z.infer<typeof formSchema>;
 
@@ -99,34 +127,20 @@ const amenities = [
 ] as const;
 
 export default function AddHotelForm({ hotel }: AddHotelFormProps) {
+	const router = useRouter();
 	const selectedFileRef = useRef<File | null>(null);
-	const [previewUrl, setPreviewUrl] = useState<string>("");
+	const [previewUrl, setPreviewUrl] = useState<string>(hotel?.image ?? "");
+	const [isLoading, setIsLoading] = useState(false);
+	const [isDeleting, setIsDeleting] = useState(false);
 	const { fetchAllProvinces, fetchDistrictsByProvinceId } = useLocation();
 	const [provinces, setProvinces] = useState<Province[]>([]);
 	const [districts, setDistricts] = useState<District[]>([]);
 
-	const handleFileChange = useCallback(
-		(e: React.ChangeEvent<HTMLInputElement>) => {
-			const file = e.target.files?.[0];
-			if (!file) return;
-
-			if (previewUrl) {
-				URL.revokeObjectURL(previewUrl);
-			}
-
-			selectedFileRef.current = file;
-			setPreviewUrl(URL.createObjectURL(file));
+	const { startUpload } = useUploadThing("imageUploader", {
+		onUploadError: (error) => {
+			toast.error(`Lỗi tải ảnh: ${error.message}`);
 		},
-		[previewUrl],
-	);
-
-	const handleRemoveImage = useCallback(() => {
-		if (previewUrl) {
-			URL.revokeObjectURL(previewUrl);
-		}
-		selectedFileRef.current = null;
-		setPreviewUrl("");
-	}, [previewUrl]);
+	});
 
 	const form = useForm<HotelFormValues>({
 		defaultValues: hotel
@@ -171,30 +185,136 @@ export default function AddHotelForm({ hotel }: AddHotelFormProps) {
 		}
 	}, [selectedProvince, fetchDistrictsByProvinceId]);
 
-	function onSubmit(values: HotelFormValues) {
-		console.log(values);
+	const handleFileChange = useCallback(
+		(e: React.ChangeEvent<HTMLInputElement>) => {
+			const file = e.target.files?.[0];
+			if (!file) return;
+
+			if (previewUrl) {
+				URL.revokeObjectURL(previewUrl);
+			}
+			selectedFileRef.current = file;
+			setPreviewUrl(URL.createObjectURL(file));
+			form.setValue("image", "pending-upload", { shouldValidate: false });
+		},
+		[previewUrl, form],
+	);
+
+	const handleRemoveImage = useCallback(() => {
+		if (previewUrl) {
+			URL.revokeObjectURL(previewUrl);
+		}
+		selectedFileRef.current = null;
+		setPreviewUrl("");
+		form.setValue("image", "", { shouldTouch: true, shouldValidate: true });
+	}, [previewUrl, form]);
+
+	const onSubmit = useCallback(
+		async (values: HotelFormValues) => {
+			setIsLoading(true);
+			try {
+				let imageUrl = values.image ?? "";
+
+				if (selectedFileRef.current) {
+					if (hotel?.image) {
+						const oldImageKey = hotel.image.substring(
+							hotel.image.lastIndexOf("/") + 1,
+						);
+						try {
+							await axios.post("/api/uploadthing/delete", {
+								imageKey: oldImageKey,
+							});
+						} catch {
+							// Ignore failure to delete old image
+						}
+					}
+
+					const uploadResult = await startUpload([selectedFileRef.current]);
+					imageUrl = uploadResult?.[0]?.ufsUrl ?? "";
+					if (!imageUrl) {
+						toast.error("Tải ảnh lên thất bại - không nhận được URL");
+						setIsLoading(false);
+						return;
+					}
+				} else {
+					imageUrl = values.image ?? "";
+					if (imageUrl === "pending-upload") imageUrl = "";
+				}
+
+				if (!imageUrl) {
+					toast.error("Vui lòng chọn ảnh khách sạn");
+					setIsLoading(false);
+					return;
+				}
+
+				const submitData = { ...values, image: imageUrl };
+
+				if (hotel) {
+					await axios.patch(`/api/hotel/${hotel.id}`, submitData);
+					toast.success("Đã cập nhật khách sạn");
+					router.push(`/hotel/${hotel.id}`);
+				} else {
+					const res = await axios.post("/api/hotel", submitData);
+					toast.success("Đã tạo khách sạn");
+					router.push(`/hotel/${res.data.id}`);
+				}
+			} catch {
+				toast.error("Đã xảy ra lỗi");
+			} finally {
+				setIsLoading(false);
+			}
+		},
+		[startUpload, hotel, router],
+	);
+
+	async function handleDeleteHotel() {
+		if (!hotel) return;
+		setIsDeleting(true);
+		try {
+			const imageKey = hotel.image.substring(hotel.image.lastIndexOf("/") + 1);
+			await axios.post("/api/uploadthing/delete", { imageKey });
+			await axios.delete(`/api/hotel/${hotel.id}`);
+			toast.success("Đã xóa khách sạn");
+			router.push("/hotel/new");
+		} catch {
+			toast.error("Đã xảy ra lỗi");
+		} finally {
+			setIsDeleting(false);
+		}
 	}
 
+	const handleFormSubmit = useCallback(
+		(e: React.FormEvent) => {
+			e.preventDefault();
+			form.handleSubmit(onSubmit)();
+		},
+		[form, onSubmit],
+	);
+
 	return (
-		<Form
-			className="space-y-7"
-			form={form}
-			onSubmit={form.handleSubmit(onSubmit)}
-		>
+		<Form className="space-y-7" form={form} onSubmit={handleFormSubmit}>
 			<h3 className="text-lg font-semibold">
 				{hotel ? "Cập nhật khách sạn" : "Mô tả khách sạn"}
 			</h3>
-			<div className="mt-6 flex flex-col gap-6 md:flex-row">
+			<div
+				className={`mt-6 flex flex-col gap-6 md:flex-row transition-opacity duration-300 ${isLoading || isDeleting ? "pointer-events-none opacity-80" : ""}`}
+			>
 				<div className="flex flex-1 flex-col gap-6">
 					<FormField
 						control={form.control}
 						name="title"
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>Tiêu đề khách sạn</FormLabel>
+								<FormLabel>
+									Tiêu đề khách sạn <span className="text-destructive">*</span>
+								</FormLabel>
 								<FormDescription>Nhập tên khách sạn của bạn</FormDescription>
 								<FormControl>
-									<Input placeholder="Khách sạn Biển" {...field} />
+									<Input
+										disabled={isLoading || isDeleting}
+										placeholder="Khách sạn Biển"
+										{...field}
+									/>
 								</FormControl>
 								<FormMessage />
 							</FormItem>
@@ -205,12 +325,18 @@ export default function AddHotelForm({ hotel }: AddHotelFormProps) {
 						name="description"
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>Mô tả khách sạn</FormLabel>
+								<FormLabel>
+									Mô tả khách sạn <span className="text-destructive">*</span>
+								</FormLabel>
 								<FormDescription>
 									Cung cấp mô tả chi tiết về khách sạn của bạn
 								</FormDescription>
 								<FormControl>
-									<Textarea placeholder="Mô tả khách sạn..." {...field} />
+									<Textarea
+										disabled={isLoading || isDeleting}
+										placeholder="Mô tả khách sạn..."
+										{...field}
+									/>
 								</FormControl>
 								<FormMessage />
 							</FormItem>
@@ -240,6 +366,7 @@ export default function AddHotelForm({ hotel }: AddHotelFormProps) {
 											/>
 											<Button
 												className="absolute -right-2 -top-2 h-7 w-7 rounded-full"
+												disabled={isLoading || isDeleting}
 												onClick={handleRemoveImage}
 												size="icon"
 												type="button"
@@ -260,6 +387,7 @@ export default function AddHotelForm({ hotel }: AddHotelFormProps) {
 											<Input
 												accept="image/*"
 												className="hidden"
+												disabled={isLoading || isDeleting}
 												id="hotel-image-upload"
 												onChange={handleFileChange}
 												type="file"
@@ -277,10 +405,12 @@ export default function AddHotelForm({ hotel }: AddHotelFormProps) {
 							name="state"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Tỉnh/Thành phố</FormLabel>
+									<FormLabel>
+										Tỉnh/Thành phố <span className="text-destructive">*</span>
+									</FormLabel>
 									<FormControl>
 										<Select
-											disabled={provinces.length < 1}
+											disabled={provinces.length < 1 || isLoading || isDeleting}
 											onValueChange={field.onChange}
 											value={field.value}
 										>
@@ -308,10 +438,12 @@ export default function AddHotelForm({ hotel }: AddHotelFormProps) {
 							name="city"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Quận/Huyện</FormLabel>
+									<FormLabel>
+										Quận/Huyện <span className="text-destructive">*</span>
+									</FormLabel>
 									<FormControl>
 										<Select
-											disabled={districts.length < 1}
+											disabled={districts.length < 1 || isLoading || isDeleting}
 											onValueChange={field.onChange}
 											value={field.value}
 										>
@@ -340,10 +472,16 @@ export default function AddHotelForm({ hotel }: AddHotelFormProps) {
 						name="locationDescription"
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>Mô tả vị trí</FormLabel>
+								<FormLabel>
+									Mô tả vị trí <span className="text-destructive">*</span>
+								</FormLabel>
 								<FormDescription>Mô tả vị trí của khách sạn</FormDescription>
 								<FormControl>
-									<Textarea placeholder="Mô tả vị trí..." {...field} />
+									<Textarea
+										disabled={isLoading || isDeleting}
+										placeholder="Mô tả vị trí..."
+										{...field}
+									/>
 								</FormControl>
 								<FormMessage />
 							</FormItem>
@@ -352,7 +490,9 @@ export default function AddHotelForm({ hotel }: AddHotelFormProps) {
 				</div>
 				<div className="flex flex-1 flex-col gap-6">
 					<div>
-						<FormLabel>Chọn tiện ích</FormLabel>
+						<FormLabel>
+							Chọn tiện ích <span className="text-destructive">*</span>
+						</FormLabel>
 						<FormDescription>
 							Chọn các tiện ích có sẵn tại khách sạn
 						</FormDescription>
@@ -368,6 +508,7 @@ export default function AddHotelForm({ hotel }: AddHotelFormProps) {
 												<Checkbox
 													checked={field.value as boolean}
 													className="mt-0.5"
+													disabled={isLoading || isDeleting}
 													onCheckedChange={field.onChange}
 												/>
 											</FormControl>
@@ -379,12 +520,73 @@ export default function AddHotelForm({ hotel }: AddHotelFormProps) {
 								/>
 							))}
 						</div>
+						{(form.formState.errors as Record<string, { message?: string }>)
+							.amenities && (
+							<p className="text-[0.8rem] font-medium text-destructive mt-2">
+								{
+									(
+										form.formState.errors as Record<
+											string,
+											{ message?: string }
+										>
+									).amenities?.message
+								}
+							</p>
+						)}
 					</div>
 				</div>
 			</div>
-			<Button className="mt-6 w-full" type="submit">
-				{hotel ? "Cập nhật" : "Tạo mới"}
-			</Button>
+			<div className="flex flex-row items-center justify-between gap-2">
+				{hotel ? (
+					<Button
+						className="max-w-[150px]"
+						disabled={isLoading || isDeleting}
+						type="submit"
+					>
+						{isLoading ? (
+							<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+						) : (
+							<PencilLine className="mr-2 h-4 w-4" />
+						)}
+						{isLoading ? "Đang cập nhật..." : "Cập nhật"}
+					</Button>
+				) : (
+					<Button className="max-w-[150px]" disabled={isLoading} type="submit">
+						{isLoading ? (
+							<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+						) : (
+							<PencilLine className="mr-2 h-4 w-4" />
+						)}
+						{isLoading ? "Đang tạo..." : "Tạo khách sạn"}
+					</Button>
+				)}
+				{hotel && (
+					<>
+						<Button
+							className="max-w-[150px]"
+							disabled={isDeleting || isLoading}
+							onClick={handleDeleteHotel}
+							type="button"
+							variant="destructive"
+						>
+							{isDeleting ? (
+								<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+							) : (
+								<Trash2 className="mr-2 h-4 w-4" />
+							)}
+							{isDeleting ? "Đang xóa..." : "Xóa"}
+						</Button>
+						<Button
+							onClick={() => router.push(`/hotel/details/${hotel.id}`)}
+							type="button"
+							variant="outline"
+						>
+							<Eye className="mr-2 h-4 w-4" />
+							Xem
+						</Button>
+					</>
+				)}
+			</div>
 		</Form>
 	);
 }

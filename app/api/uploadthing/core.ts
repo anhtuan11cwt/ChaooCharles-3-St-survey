@@ -14,8 +14,6 @@ export const ourFileRouter = {
 			return { userId: user.id };
 		})
 		.onUploadComplete(async ({ metadata, file }) => {
-			console.log("Tải lên hoàn tất cho người dùng:", metadata.userId);
-			console.log("URL tập tin:", file.ufsUrl);
 			return { uploadedBy: metadata.userId, url: file.ufsUrl };
 		}),
 } satisfies FileRouter;

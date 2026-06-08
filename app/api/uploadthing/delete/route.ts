@@ -14,8 +14,7 @@ export async function POST(request: Request) {
 		const { imageKey } = await request.json();
 		const result = await utapi.deleteFiles(imageKey);
 		return NextResponse.json({ result, success: true });
-	} catch (error) {
-		console.error("Lỗi khi xóa uploadthing:", error);
+	} catch {
 		return NextResponse.json(
 			{ error: "Không thể xóa tập tin" },
 			{ status: 500 },
