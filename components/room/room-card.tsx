@@ -49,8 +49,8 @@ import type { Booking, Room } from "@/lib/generated/prisma/client";
 
 interface RoomCardProps {
   bookings?: Booking[];
-  hotel: HotelWithRooms;
-  room: Room & { booking: Booking[] };
+  hotel?: HotelWithRooms;
+  room: Room & { booking?: Booking[] };
 }
 
 export default function RoomCard({
@@ -67,6 +67,7 @@ export default function RoomCard({
   const [includeBreakfast, setIncludeBreakfast] = useState(false);
 
   const isHotelDetailsPage = pathname.includes("hotel-details");
+  const isBookRoomPage = pathname.includes("book-room");
 
   const disabledDates = useMemo(() => {
     const days: Date[] = [];
@@ -142,39 +143,34 @@ export default function RoomCard({
       toast.error("Vui lòng chọn ngày đặt phòng");
       return;
     }
+    if (!hotel) {
+      toast.error("Không tìm thấy thông tin khách sạn");
+      return;
+    }
     setBookingIsLoading(true);
     try {
       const bookingData = {
         breakfastIncluded: includeBreakfast,
-        endDate: date.to,
+        endDate: date.to.toISOString(),
         hotelId: hotel.id,
         hotelOwnerId: hotel.userId,
         roomId: room.id,
-        startDate: date.from,
+        startDate: date.from.toISOString(),
         totalPrice,
       };
       const res = await axios.post("/api/create-payment-intent", {
         booking: bookingData,
-        paymentIntentId: null,
       });
-      if (res.status === 200) {
-        toast.success("Đã tạo đơn đặt phòng");
-        router.push("/book-room");
+      if (res.status === 200 && res.data.url) {
+        toast.success("Đang chuyển đến trang thanh toán...");
+        window.location.href = res.data.url;
       }
     } catch {
       toast.error("Đã xảy ra lỗi");
     } finally {
       setBookingIsLoading(false);
     }
-  }, [
-    date,
-    includeBreakfast,
-    totalPrice,
-    room.id,
-    hotel.id,
-    hotel.userId,
-    router,
-  ]);
+  }, [date, includeBreakfast, totalPrice, room.id, hotel]);
 
   return (
     <Card>
@@ -283,74 +279,79 @@ export default function RoomCard({
           )}
         </div>
       </CardContent>
-      {isHotelDetailsPage ? (
-        <CardFooter className="flex flex-col gap-6">
-          <div className="flex flex-col gap-2 w-full">
-            <p className="text-sm font-semibold">
-              Chọn ngày bạn muốn lưu trú tại phòng này
-            </p>
-            <DateRangePicker
-              date={date}
-              disabled={disabledDates}
-              setDate={setDate}
-            />
-          </div>
-          {room.breakfastPrice > 0 && (
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="breakfast"
-                onCheckedChange={(value) => setIncludeBreakfast(!!value)}
+      {!isBookRoomPage &&
+        (isHotelDetailsPage ? (
+          <CardFooter className="flex flex-col gap-6">
+            <div className="flex flex-col gap-2 w-full">
+              <p className="text-sm font-semibold">
+                Chọn ngày bạn muốn lưu trú tại phòng này
+              </p>
+              <DateRangePicker
+                date={date}
+                disabled={disabledDates}
+                setDate={setDate}
               />
-              <label
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                htmlFor="breakfast"
-              >
-                Bạn có muốn dùng bữa sáng mỗi ngày không?
-              </label>
             </div>
-          )}
-          <div className="flex gap-4 w-full">
-            <p className="font-bold">
-              Tổng: <span className="font-bold">{totalPrice}</span>
-            </p>
-            <p className="font-bold">
-              Số ngày: <span className="font-bold">{days}</span>
-            </p>
-          </div>
-          <Button
-            disabled={bookingIsLoading}
-            onClick={handleBookRoom}
-            type="button"
-          >
-            {bookingIsLoading ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <Check className="mr-2 h-4 w-4" />
+            {room.breakfastPrice > 0 && (
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="breakfast"
+                  onCheckedChange={(value) => setIncludeBreakfast(!!value)}
+                />
+                <label
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  htmlFor="breakfast"
+                >
+                  Bạn có muốn dùng bữa sáng mỗi ngày không?
+                </label>
+              </div>
             )}
-            {bookingIsLoading ? "Đang xử lý..." : "Đặt phòng"}
-          </Button>
-        </CardFooter>
-      ) : (
-        <CardFooter className="gap-4">
-          <Button disabled={isLoading} onClick={handleDialogOpen} type="button">
-            <Pencil className="mr-2 h-4 w-4" />
-            Cập nhật
-          </Button>
-          <Button
-            disabled={isLoading}
-            onClick={() => handleRoomDelete(room)}
-            type="button"
-            variant="destructive"
-          >
-            {isLoading ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <Trash2 className="mr-2 h-4 w-4" />
-            )}
-            Xóa
-          </Button>
-        </CardFooter>
-      )}
+            <div className="flex gap-4 w-full">
+              <p className="font-bold">
+                Tổng: <span className="font-bold">{totalPrice}</span>
+              </p>
+              <p className="font-bold">
+                Số ngày: <span className="font-bold">{days}</span>
+              </p>
+            </div>
+            <Button
+              disabled={bookingIsLoading}
+              onClick={handleBookRoom}
+              type="button"
+            >
+              {bookingIsLoading ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Check className="mr-2 h-4 w-4" />
+              )}
+              {bookingIsLoading ? "Đang xử lý..." : "Đặt phòng"}
+            </Button>
+          </CardFooter>
+        ) : (
+          <CardFooter className="gap-4">
+            <Button
+              disabled={isLoading}
+              onClick={handleDialogOpen}
+              type="button"
+            >
+              <Pencil className="mr-2 h-4 w-4" />
+              Cập nhật
+            </Button>
+            <Button
+              disabled={isLoading}
+              onClick={() => handleRoomDelete(room)}
+              type="button"
+              variant="destructive"
+            >
+              {isLoading ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Trash2 className="mr-2 h-4 w-4" />
+              )}
+              Xóa
+            </Button>
+          </CardFooter>
+        ))}
       <Dialog onOpenChange={setOpen} open={open}>
         <DialogContent className="max-h-[85vh] w-[90%] overflow-y-auto scrollbar-hide sm:max-w-[900px] px-2">
           <DialogHeader className="px-4">

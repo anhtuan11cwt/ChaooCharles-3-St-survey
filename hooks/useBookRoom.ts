@@ -10,7 +10,7 @@ interface RoomDataType {
   totalPrice: number;
 }
 
-interface BookRoomStore {
+export interface BookRoomStore {
   bookingRoomData: RoomDataType | null;
   clientSecret: string | undefined;
   paymentIntent: string | null;

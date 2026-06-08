@@ -3,6 +3,11 @@ import Stripe from "stripe";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
+function formatDate(dateStr: string): string {
+  const d = new Date(dateStr);
+  return `${d.getDate().toString().padStart(2, "0")}/${(d.getMonth() + 1).toString().padStart(2, "0")}/${d.getFullYear()}`;
+}
+
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? "", {
   typescript: true,
 });
@@ -15,50 +20,60 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const { booking, paymentIntentId } = body;
+    const { booking } = body;
 
     const bookingData = {
       ...booking,
       currency: "vnd",
-      paymentIntentId: paymentIntentId ?? null,
       paymentStatus: "false",
       userEmail: user.email,
       userId: user.id,
       username: user.name ?? user.email,
     };
 
-    if (paymentIntentId) {
-      const existingBooking = await prisma.booking.findFirst({
-        where: {
-          paymentIntentId,
-          userId: user.id,
-        },
-      });
-      if (existingBooking) {
-        const updatedIntent = await stripe.paymentIntents.update(
-          paymentIntentId,
-          { amount: bookingData.totalPrice },
-        );
-        await prisma.booking.update({
-          data: {
-            breakfastIncluded: bookingData.breakfastIncluded,
-            endDate: new Date(bookingData.endDate),
-            startDate: new Date(bookingData.startDate),
-            totalPrice: bookingData.totalPrice,
-          },
-          where: { id: existingBooking.id },
-        });
-        return NextResponse.json({ paymentIntent: updatedIntent });
-      }
-    }
-
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: bookingData.totalPrice,
-      automatic_payment_methods: { enabled: true },
-      currency: bookingData.currency,
+    const room = await prisma.room.findUnique({
+      include: { hotel: true },
+      where: { id: bookingData.roomId },
     });
 
-    bookingData.paymentIntentId = paymentIntent.id;
+    if (!room) {
+      return NextResponse.json(
+        { error: "Không tìm thấy phòng" },
+        { status: 404 },
+      );
+    }
+
+    const session = await stripe.checkout.sessions.create({
+      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/hotel-details/${bookingData.hotelId}`,
+      line_items: [
+        {
+          price_data: {
+            currency: bookingData.currency,
+            product_data: {
+              description: `${room.hotel.title} - ${formatDate(bookingData.startDate)} đến ${formatDate(bookingData.endDate)}`,
+              name: room.title,
+            },
+            unit_amount: bookingData.totalPrice,
+          },
+          quantity: 1,
+        },
+      ],
+      metadata: {
+        breakfastIncluded: String(bookingData.breakfastIncluded),
+        endDate: bookingData.endDate,
+        hotelId: bookingData.hotelId,
+        hotelOwnerId: bookingData.hotelOwnerId,
+        roomId: bookingData.roomId,
+        startDate: bookingData.startDate,
+        totalPrice: String(bookingData.totalPrice),
+        userEmail: bookingData.userEmail,
+        userId: bookingData.userId,
+        username: bookingData.username,
+      },
+      mode: "payment",
+      payment_method_types: ["card"],
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/book-room/success?session_id={CHECKOUT_SESSION_ID}`,
+    });
 
     await prisma.booking.create({
       data: {
@@ -67,7 +82,7 @@ export async function POST(request: Request) {
         endDate: new Date(bookingData.endDate),
         hotelId: bookingData.hotelId,
         hotelOwnerId: bookingData.hotelOwnerId,
-        paymentIntentId: bookingData.paymentIntentId,
+        paymentIntentId: (session.payment_intent as string) ?? session.id,
         paymentStatus: bookingData.paymentStatus,
         roomId: bookingData.roomId,
         startDate: new Date(bookingData.startDate),
@@ -78,9 +93,9 @@ export async function POST(request: Request) {
       },
     });
 
-    return NextResponse.json({ paymentIntent });
+    return NextResponse.json({ url: session.url });
   } catch (error) {
-    console.error("Lỗi tạo payment intent:", error);
+    console.error("Lỗi tạo checkout session:", error);
     return NextResponse.json({ error: "Lỗi máy chủ nội bộ" }, { status: 500 });
   }
 }
