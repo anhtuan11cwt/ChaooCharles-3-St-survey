@@ -3,8 +3,8 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ImageIcon, X } from "lucide-react";
 import Image from "next/image";
-import { useCallback, useRef, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
+import { useForm, useWatch } from "react-hook-form";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -18,7 +18,15 @@ import {
 	FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import useLocation, { type District, type Province } from "@/hooks/useLocation";
 import type { Hotel, Room } from "@/lib/generated/prisma/client";
 
 export type HotelWithRooms = Hotel & { rooms: Room[] };
@@ -93,6 +101,9 @@ const amenities = [
 export default function AddHotelForm({ hotel }: AddHotelFormProps) {
 	const selectedFileRef = useRef<File | null>(null);
 	const [previewUrl, setPreviewUrl] = useState<string>("");
+	const { fetchAllProvinces, fetchDistrictsByProvinceId } = useLocation();
+	const [provinces, setProvinces] = useState<Province[]>([]);
+	const [districts, setDistricts] = useState<District[]>([]);
 
 	const handleFileChange = useCallback(
 		(e: React.ChangeEvent<HTMLInputElement>) => {
@@ -142,6 +153,23 @@ export default function AddHotelForm({ hotel }: AddHotelFormProps) {
 			: defaultValues,
 		resolver: zodResolver(formSchema),
 	});
+
+	const selectedProvince = useWatch({ control: form.control, name: "state" });
+	const [, startTransition] = useTransition();
+
+	useEffect(() => {
+		fetchAllProvinces().then(setProvinces);
+	}, [fetchAllProvinces]);
+
+	useEffect(() => {
+		if (selectedProvince) {
+			fetchDistrictsByProvinceId(selectedProvince).then((data) => {
+				startTransition(() => setDistricts(data));
+			});
+		} else {
+			startTransition(() => setDistricts([]));
+		}
+	}, [selectedProvince, fetchDistrictsByProvinceId]);
 
 	function onSubmit(values: HotelFormValues) {
 		console.log(values);
@@ -251,7 +279,25 @@ export default function AddHotelForm({ hotel }: AddHotelFormProps) {
 								<FormItem>
 									<FormLabel>Tỉnh/Thành phố</FormLabel>
 									<FormControl>
-										<Input placeholder="Tỉnh/thành" {...field} />
+										<Select
+											disabled={provinces.length < 1}
+											onValueChange={field.onChange}
+											value={field.value}
+										>
+											<SelectTrigger className="w-full">
+												<SelectValue placeholder="Chọn tỉnh/thành phố" />
+											</SelectTrigger>
+											<SelectContent>
+												{provinces.map((province) => (
+													<SelectItem
+														key={province.idProvince}
+														value={province.idProvince}
+													>
+														{province.name}
+													</SelectItem>
+												))}
+											</SelectContent>
+										</Select>
 									</FormControl>
 									<FormMessage />
 								</FormItem>
@@ -264,7 +310,25 @@ export default function AddHotelForm({ hotel }: AddHotelFormProps) {
 								<FormItem>
 									<FormLabel>Quận/Huyện</FormLabel>
 									<FormControl>
-										<Input placeholder="Quận/huyện" {...field} />
+										<Select
+											disabled={districts.length < 1}
+											onValueChange={field.onChange}
+											value={field.value}
+										>
+											<SelectTrigger className="w-full">
+												<SelectValue placeholder="Chọn quận/huyện" />
+											</SelectTrigger>
+											<SelectContent>
+												{districts.map((district) => (
+													<SelectItem
+														key={district.idDistrict}
+														value={district.idDistrict}
+													>
+														{district.name}
+													</SelectItem>
+												))}
+											</SelectContent>
+										</Select>
 									</FormControl>
 									<FormMessage />
 								</FormItem>
