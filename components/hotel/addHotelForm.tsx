@@ -7,15 +7,34 @@ import type { OurFileRouter } from "@/app/api/uploadthing/core";
 const { useUploadThing } = generateReactHelpers<OurFileRouter>();
 
 import axios from "axios";
-import { Eye, ImageIcon, Loader2, PencilLine, Trash2, X } from "lucide-react";
+import {
+  Eye,
+  Flame,
+  ImageIcon,
+  Loader2,
+  PencilLine,
+  Plus,
+  Trash2,
+  X,
+} from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import toast from "react-hot-toast";
 import * as z from "zod";
+import AddRoomForm from "@/components/room/add-room-form";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -132,9 +151,14 @@ export default function AddHotelForm({ hotel }: AddHotelFormProps) {
   const [previewUrl, setPreviewUrl] = useState<string>(hotel?.image ?? "");
   const [isLoading, setIsLoading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [open, setOpen] = useState(false);
   const { fetchAllProvinces, fetchDistrictsByProvinceId } = useLocation();
   const [provinces, setProvinces] = useState<Province[]>([]);
   const [districts, setDistricts] = useState<District[]>([]);
+
+  const handleDialogOpen = useCallback(() => {
+    setOpen((prev) => !prev);
+  }, []);
 
   const { startUpload } = useUploadThing("imageUploader", {
     onUploadError: (error) => {
@@ -296,6 +320,45 @@ export default function AddHotelForm({ hotel }: AddHotelFormProps) {
       <h3 className="text-lg font-semibold">
         {hotel ? "Cập nhật khách sạn" : "Mô tả khách sạn"}
       </h3>
+      {hotel && hotel.rooms.length === 0 && (
+        <Alert className="bg-indigo-600 text-white">
+          <Flame className="!text-white" />
+          <AlertTitle className="text-white">One last step 🔥</AlertTitle>
+          <AlertDescription className="text-white">
+            Khách sạn của bạn đã được tạo thành công!
+            <br />
+            Vui lòng thêm phòng để hoàn tất thiết lập khách sạn.
+          </AlertDescription>
+        </Alert>
+      )}
+      {hotel && (
+        <Dialog onOpenChange={setOpen} open={open}>
+          <DialogTrigger asChild>
+            <Button
+              className="max-w-[150px]"
+              onClick={(e) => {
+                e.stopPropagation();
+              }}
+              type="button"
+              variant="outline"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Thêm phòng
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-h-[85vh] w-[90%] overflow-y-auto scrollbar-hide sm:max-w-[900px] px-2">
+            <DialogHeader className="px-4">
+              <DialogTitle>Thêm phòng mới</DialogTitle>
+              <DialogDescription>
+                Thêm thông tin chi tiết về phòng trong khách sạn
+              </DialogDescription>
+            </DialogHeader>
+            <div className="px-4 pb-4">
+              <AddRoomForm handleDialogOpen={handleDialogOpen} hotel={hotel} />
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
       <div
         className={`mt-6 flex flex-col gap-6 md:flex-row transition-opacity duration-300 ${isLoading || isDeleting ? "pointer-events-none opacity-80" : ""}`}
       >
@@ -351,7 +414,7 @@ export default function AddHotelForm({ hotel }: AddHotelFormProps) {
                   Hình ảnh khách sạn <span className="text-destructive">*</span>
                 </FormLabel>
                 <FormDescription>
-                  Chọn ảnh JPG hoặc PNG, tối đa 4MB
+                  Chọn ảnh JPG hoặc PNG, tối đa 8MB
                 </FormDescription>
                 <FormControl>
                   {previewUrl ? (
