@@ -52,6 +52,7 @@ import {
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import type { Booking, Room } from "@/lib/generated/prisma/client";
+import { formatPrice } from "@/lib/utils";
 
 type DateRangeType = { endDate: Date; startDate: Date }[];
 
@@ -244,13 +245,13 @@ export default function RoomCard({
           {room.kingBed > 0 && (
             <AmenityItem>
               <BedDouble className="h-4 w-4" />
-              <span>{room.kingBed} King</span>
+              <span>{room.kingBed} Giường lớn</span>
             </AmenityItem>
           )}
           {room.queenBed > 0 && (
             <AmenityItem>
               <BedDouble className="h-4 w-4" />
-              <span>{room.queenBed} Queen</span>
+              <span>{room.queenBed} Giường trung</span>
             </AmenityItem>
           )}
           {room.roomService && (
@@ -318,12 +319,12 @@ export default function RoomCard({
         <div className="flex gap-4 justify-between">
           <div>
             <p className="font-bold">Giá phòng</p>
-            <p className="text-xs">{room.roomPrice} / 24 giờ</p>
+            <p className="text-xs">{formatPrice(room.roomPrice)} / 24 giờ</p>
           </div>
           {room.breakfastPrice > 0 && (
             <div>
               <p className="font-bold">Giá bữa sáng</p>
-              <p className="text-xs">{room.breakfastPrice}</p>
+              <p className="text-xs">{formatPrice(room.breakfastPrice)}</p>
             </div>
           )}
         </div>
@@ -357,7 +358,8 @@ export default function RoomCard({
             )}
             <div className="flex gap-4 w-full">
               <p className="font-bold">
-                Tổng: <span className="font-bold">{totalPrice}</span>
+                Tổng:{" "}
+                <span className="font-bold">{formatPrice(totalPrice)}</span>
               </p>
               <p className="font-bold">
                 Số ngày: <span className="font-bold">{days}</span>

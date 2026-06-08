@@ -1,3 +1,4 @@
+import { resolveLocationNames } from "@/lib/location-utils";
 import { prisma } from "@/lib/prisma";
 
 interface SearchParams {
@@ -19,7 +20,17 @@ export const getHotels = async (searchParams: SearchParams = {}) => {
       },
     });
 
-    return hotels;
+    const hotelsWithNames = await Promise.all(
+      hotels.map(async (hotel) => {
+        const { stateName, cityName } = await resolveLocationNames(
+          hotel.state,
+          hotel.city,
+        );
+        return { ...hotel, cityName, stateName };
+      }),
+    );
+
+    return hotelsWithNames;
   } catch (error) {
     console.error("Lỗi khi lấy danh sách khách sạn:", error);
     throw new Error("Không thể lấy danh sách khách sạn");

@@ -13,6 +13,7 @@ import { useState } from "react";
 import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
 import type { BookRoomStore } from "@/hooks/useBookRoom";
+import { formatPrice } from "@/lib/utils";
 
 interface RoomPaymentFormProps {
   bookingRoomData: NonNullable<BookRoomStore["bookingRoomData"]>;
@@ -83,7 +84,9 @@ export default function RoomPaymentForm({
         )}
         <div className="flex justify-between border-t pt-2">
           <span className="font-bold">Tổng:</span>
-          <span className="font-bold">{bookingRoomData.totalPrice}</span>
+          <span className="font-bold">
+            {formatPrice(bookingRoomData.totalPrice)}
+          </span>
         </div>
       </div>
       {isLoading && (

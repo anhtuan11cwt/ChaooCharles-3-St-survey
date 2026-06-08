@@ -1,3 +1,4 @@
+import { resolveLocationNames } from "@/lib/location-utils";
 import { prisma } from "@/lib/prisma";
 
 export async function getHotelById(hotelId: string) {
@@ -9,7 +10,12 @@ export async function getHotelById(hotelId: string) {
 
     if (!hotel) return null;
 
-    return hotel;
+    const { stateName, cityName } = await resolveLocationNames(
+      hotel.state,
+      hotel.city,
+    );
+
+    return { ...hotel, cityName, stateName };
   } catch (error) {
     console.error("Lỗi khi lấy khách sạn:", error);
     throw new Error("Không thể lấy khách sạn");

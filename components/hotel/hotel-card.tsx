@@ -6,7 +6,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { HotelWithRooms } from "@/components/hotel/addHotelForm";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { cn, formatPrice } from "@/lib/utils";
 
 interface HotelCardProps {
   hotel: HotelWithRooms;
@@ -38,13 +38,14 @@ export default function HotelCard({ hotel }: HotelCardProps) {
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-1 text-primary/80 text-sm">
             <MapPin className="h-4 w-4" />
-            <span>
-              {hotel.state}, {hotel.city}
+            <span className="flex flex-col">
+              <span>{hotel.cityName}</span>
+              <span>{hotel.stateName}</span>
             </span>
           </div>
           {hotel.rooms[0]?.roomPrice && (
             <p className="font-semibold text-sm">
-              {hotel.rooms[0].roomPrice} / 24 giờ
+              {formatPrice(hotel.rooms[0].roomPrice)} / 24 giờ
             </p>
           )}
         </div>

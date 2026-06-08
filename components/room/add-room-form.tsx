@@ -11,7 +11,7 @@ import { ImageIcon, Loader2, PencilLine, Plus, Trash2, X } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useCallback, useRef, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import toast from "react-hot-toast";
 import * as z from "zod";
 import type { HotelWithRooms } from "@/components/hotel/addHotelForm";
@@ -78,6 +78,17 @@ const formSchema = z
     {
       message: "Vui lòng chọn ít nhất một tiện ích",
       path: ["amenities"],
+    },
+  )
+  .refine(
+    (data) => {
+      const totalBeds = (data.kingBed ?? 0) + (data.queenBed ?? 0);
+      return totalBeds === data.bedCount;
+    },
+    {
+      message:
+        "Tổng số giường lớn + giường trung phải khớp với số lượng giường",
+      path: ["bedCount"],
     },
   );
 
@@ -162,6 +173,10 @@ export default function AddRoomForm({
       : defaultValues,
     resolver: zodResolver(formSchema),
   });
+
+  const kingBed = useWatch({ control: form.control, name: "kingBed" });
+  const queenBed = useWatch({ control: form.control, name: "queenBed" });
+  const totalBeds = (kingBed ?? 0) + (queenBed ?? 0);
 
   const handleFileChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -424,7 +439,7 @@ export default function AddRoomForm({
               name="kingBed"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Giường King</FormLabel>
+                  <FormLabel>Giường lớn</FormLabel>
                   <FormControl>
                     <Input
                       disabled={isLoading}
@@ -443,7 +458,7 @@ export default function AddRoomForm({
               name="queenBed"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Giường Queen</FormLabel>
+                  <FormLabel>Giường trung</FormLabel>
                   <FormControl>
                     <Input
                       disabled={isLoading}
@@ -457,6 +472,10 @@ export default function AddRoomForm({
                 </FormItem>
               )}
             />
+          </div>
+          <div className="text-sm text-muted-foreground">
+            Tổng số giường:{" "}
+            <span className="font-medium text-foreground">{totalBeds}</span>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <FormField

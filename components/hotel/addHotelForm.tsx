@@ -60,6 +60,8 @@ import type { Booking, Hotel, Room } from "@/lib/generated/prisma/client";
 
 export type HotelWithRooms = Hotel & {
   rooms: (Room & { booking: Booking[] })[];
+  stateName?: string;
+  cityName?: string;
 };
 
 interface AddHotelFormProps {

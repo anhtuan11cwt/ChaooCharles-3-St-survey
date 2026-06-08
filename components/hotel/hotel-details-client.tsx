@@ -86,8 +86,9 @@ export default function HotelDetailsClient({
         <h1 className="text-2xl md:text-3xl font-bold">{hotel.title}</h1>
         <div className="flex items-center gap-1 mt-2 text-primary/80">
           <MapPin className="h-4 w-4" />
-          <span className="text-sm">
-            {hotel.state}, {hotel.city}
+          <span className="flex flex-col text-sm">
+            <span>{hotel.cityName}</span>
+            <span>{hotel.stateName}</span>
           </span>
         </div>
       </div>
