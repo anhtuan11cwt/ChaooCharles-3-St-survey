@@ -1,6 +1,9 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { ImageIcon, X } from "lucide-react";
+import Image from "next/image";
+import { useCallback, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
@@ -88,6 +91,32 @@ const amenities = [
 ] as const;
 
 export default function AddHotelForm({ hotel }: AddHotelFormProps) {
+	const selectedFileRef = useRef<File | null>(null);
+	const [previewUrl, setPreviewUrl] = useState<string>("");
+
+	const handleFileChange = useCallback(
+		(e: React.ChangeEvent<HTMLInputElement>) => {
+			const file = e.target.files?.[0];
+			if (!file) return;
+
+			if (previewUrl) {
+				URL.revokeObjectURL(previewUrl);
+			}
+
+			selectedFileRef.current = file;
+			setPreviewUrl(URL.createObjectURL(file));
+		},
+		[previewUrl],
+	);
+
+	const handleRemoveImage = useCallback(() => {
+		if (previewUrl) {
+			URL.revokeObjectURL(previewUrl);
+		}
+		selectedFileRef.current = null;
+		setPreviewUrl("");
+	}, [previewUrl]);
+
 	const form = useForm<HotelFormValues>({
 		defaultValues: hotel
 			? {
@@ -162,17 +191,53 @@ export default function AddHotelForm({ hotel }: AddHotelFormProps) {
 					<FormField
 						control={form.control}
 						name="image"
-						render={({ field }) => (
+						render={() => (
 							<FormItem>
-								<FormLabel>Link hình ảnh</FormLabel>
+								<FormLabel>
+									Hình ảnh khách sạn <span className="text-destructive">*</span>
+								</FormLabel>
 								<FormDescription>
-									Đường dẫn đến hình ảnh khách sạn
+									Chọn ảnh JPG hoặc PNG, tối đa 4MB
 								</FormDescription>
 								<FormControl>
-									<Input
-										placeholder="https://example.com/image.jpg"
-										{...field}
-									/>
+									{previewUrl ? (
+										<div className="relative">
+											<Image
+												alt="Xem trước"
+												className="h-auto w-full rounded-lg border border-border object-contain"
+												height={0}
+												sizes="100vw"
+												src={previewUrl}
+												width={0}
+											/>
+											<Button
+												className="absolute -right-2 -top-2 h-7 w-7 rounded-full"
+												onClick={handleRemoveImage}
+												size="icon"
+												type="button"
+												variant="destructive"
+											>
+												<X className="h-4 w-4" />
+											</Button>
+										</div>
+									) : (
+										<label
+											className="flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed border-border p-8 transition-colors hover:border-primary/50"
+											htmlFor="hotel-image-upload"
+										>
+											<ImageIcon className="h-10 w-10 text-muted-foreground" />
+											<span className="text-sm text-muted-foreground">
+												Nhấn để chọn ảnh
+											</span>
+											<Input
+												accept="image/*"
+												className="hidden"
+												id="hotel-image-upload"
+												onChange={handleFileChange}
+												type="file"
+											/>
+										</label>
+									)}
 								</FormControl>
 								<FormMessage />
 							</FormItem>
