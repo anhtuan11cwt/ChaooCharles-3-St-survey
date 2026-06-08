@@ -323,7 +323,7 @@ export default function AddHotelForm({ hotel }: AddHotelFormProps) {
       {hotel && hotel.rooms.length === 0 && (
         <Alert className="bg-indigo-600 text-white">
           <Flame className="!text-white" />
-          <AlertTitle className="text-white">One last step 🔥</AlertTitle>
+          <AlertTitle className="text-white">Bước cuối cùng 🔥</AlertTitle>
           <AlertDescription className="text-white">
             Khách sạn của bạn đã được tạo thành công!
             <br />

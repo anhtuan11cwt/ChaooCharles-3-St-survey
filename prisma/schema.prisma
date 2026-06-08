@@ -71,10 +71,12 @@ model Room {
   roomService    Boolean  @default(false)
   tv             Boolean  @default(false)
   balcony        Boolean  @default(false)
+  freeWifi       Boolean  @default(false)
   cityView       Boolean  @default(false)
   oceanView      Boolean  @default(false)
   forestView     Boolean  @default(false)
   mountainView   Boolean  @default(false)
+  airCondition   Boolean  @default(false)
   soundProofed   Boolean  @default(false)
   hotelId        String
   hotel          Hotel    @relation(fields: [hotelId], references: [id], onDelete: Cascade)

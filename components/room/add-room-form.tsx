@@ -7,8 +7,9 @@ import type { OurFileRouter } from "@/app/api/uploadthing/core";
 const { useUploadThing } = generateReactHelpers<OurFileRouter>();
 
 import axios from "axios";
-import { ImageIcon, Loader2, Plus, X } from "lucide-react";
+import { ImageIcon, Loader2, PencilLine, Plus, Trash2, X } from "lucide-react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useCallback, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
@@ -35,34 +36,55 @@ interface AddRoomFormProps {
   room?: Room;
 }
 
-const formSchema = z.object({
-  balcony: z.boolean().optional(),
-  bathroomCount: z
-    .number()
-    .min(1, { message: "Số lượng phòng tắm phải lớn hơn 0" }),
-  bedCount: z.number().min(1, { message: "Số lượng giường phải lớn hơn 0" }),
-  breakfastPrice: z.number().optional(),
-  cityView: z.boolean().optional(),
-  description: z
-    .string()
-    .min(10, { message: "Mô tả phải có ít nhất 10 ký tự" }),
-  forestView: z.boolean().optional(),
-  guestCount: z.number().min(1, { message: "Số lượng khách phải lớn hơn 0" }),
-  image: z.string().min(1, { message: "Vui lòng chọn ảnh phòng" }),
-  kingBed: z.number().min(0).optional(),
-  mountainView: z.boolean().optional(),
-  oceanView: z.boolean().optional(),
-  queenBed: z.number().min(0).optional(),
-  roomPrice: z.number().min(1, { message: "Giá phòng phải lớn hơn 0" }),
-  roomService: z.boolean().optional(),
-  soundProofed: z.boolean().optional(),
-  title: z.string().min(3, { message: "Tiêu đề phải có ít nhất 3 ký tự" }),
-  tv: z.boolean().optional(),
-});
+const formSchema = z
+  .object({
+    airCondition: z.boolean().optional(),
+    balcony: z.boolean().optional(),
+    bathroomCount: z
+      .number()
+      .min(1, { message: "Số lượng phòng tắm phải lớn hơn 0" }),
+    bedCount: z.number().min(1, { message: "Số lượng giường phải lớn hơn 0" }),
+    breakfastPrice: z.number().optional(),
+    cityView: z.boolean().optional(),
+    description: z
+      .string()
+      .min(10, { message: "Mô tả phải có ít nhất 10 ký tự" }),
+    forestView: z.boolean().optional(),
+    freeWifi: z.boolean().optional(),
+    guestCount: z.number().min(1, { message: "Số lượng khách phải lớn hơn 0" }),
+    image: z.string().min(1, { message: "Vui lòng chọn ảnh phòng" }),
+    kingBed: z.number().min(0).optional(),
+    mountainView: z.boolean().optional(),
+    oceanView: z.boolean().optional(),
+    queenBed: z.number().min(0).optional(),
+    roomPrice: z.number().min(1, { message: "Giá phòng phải lớn hơn 0" }),
+    roomService: z.boolean().optional(),
+    soundProofed: z.boolean().optional(),
+    title: z.string().min(3, { message: "Tiêu đề phải có ít nhất 3 ký tự" }),
+    tv: z.boolean().optional(),
+  })
+  .refine(
+    (data) =>
+      data.roomService ||
+      data.tv ||
+      data.balcony ||
+      data.freeWifi ||
+      data.cityView ||
+      data.oceanView ||
+      data.forestView ||
+      data.mountainView ||
+      data.airCondition ||
+      data.soundProofed,
+    {
+      message: "Vui lòng chọn ít nhất một tiện ích",
+      path: ["amenities"],
+    },
+  );
 
 type RoomFormValues = z.infer<typeof formSchema>;
 
 const defaultValues: RoomFormValues = {
+  airCondition: false,
   balcony: false,
   bathroomCount: 0,
   bedCount: 0,
@@ -70,6 +92,7 @@ const defaultValues: RoomFormValues = {
   cityView: false,
   description: "",
   forestView: false,
+  freeWifi: false,
   guestCount: 0,
   image: "",
   kingBed: 0,
@@ -84,13 +107,15 @@ const defaultValues: RoomFormValues = {
 };
 
 const amenities = [
-  { label: "Dịch vụ phòng", name: "roomService" },
+  { label: "Dịch vụ phòng 24 giờ", name: "roomService" },
   { label: "TV", name: "tv" },
   { label: "Ban công", name: "balcony" },
+  { label: "Wi-Fi miễn phí", name: "freeWifi" },
   { label: "View thành phố", name: "cityView" },
-  { label: "View biển", name: "oceanView" },
+  { label: "View đại dương", name: "oceanView" },
   { label: "View rừng", name: "forestView" },
   { label: "View núi", name: "mountainView" },
+  { label: "Điều hòa nhiệt độ", name: "airCondition" },
   { label: "Cách âm", name: "soundProofed" },
 ] as const;
 
@@ -99,6 +124,7 @@ export default function AddRoomForm({
   room,
   handleDialogOpen,
 }: AddRoomFormProps) {
+  const router = useRouter();
   const selectedFileRef = useRef<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>(room?.image ?? "");
   const [isLoading, setIsLoading] = useState(false);
@@ -112,6 +138,7 @@ export default function AddRoomForm({
   const form = useForm<RoomFormValues>({
     defaultValues: room
       ? {
+          airCondition: room.airCondition,
           balcony: room.balcony,
           bathroomCount: room.bathroomCount,
           bedCount: room.bedCount,
@@ -119,6 +146,7 @@ export default function AddRoomForm({
           cityView: room.cityView,
           description: room.description,
           forestView: room.forestView,
+          freeWifi: room.freeWifi,
           guestCount: room.guestCount,
           image: room.image,
           kingBed: room.kingBed,
@@ -167,6 +195,19 @@ export default function AddRoomForm({
         let imageUrl = values.image ?? "";
 
         if (selectedFileRef.current) {
+          if (room?.image) {
+            const oldImageKey = room.image.substring(
+              room.image.lastIndexOf("/") + 1,
+            );
+            try {
+              await axios.post("/api/uploadthing/delete", {
+                imageKey: oldImageKey,
+              });
+            } catch {
+              // Ignore failure to delete old image
+            }
+          }
+
           const uploadResult = await startUpload([selectedFileRef.current]);
           imageUrl = uploadResult?.[0]?.ufsUrl ?? "";
           if (!imageUrl) {
@@ -187,28 +228,32 @@ export default function AddRoomForm({
 
         const submitData = { ...values, hotelId: hotel.id, image: imageUrl };
 
-        await axios.post("/api/room", submitData);
-        toast.success("Đã tạo phòng");
-        handleDialogOpen();
+        if (room) {
+          await axios.patch(`/api/room/${room.id}`, submitData);
+          toast.success("Đã cập nhật phòng");
+          router.refresh();
+          handleDialogOpen();
+        } else {
+          await axios.post("/api/room", submitData);
+          toast.success("Đã tạo phòng");
+          router.refresh();
+          handleDialogOpen();
+        }
       } catch {
         toast.error("Đã xảy ra lỗi");
       } finally {
         setIsLoading(false);
       }
     },
-    [hotel, startUpload, handleDialogOpen],
-  );
-
-  const handleFormSubmit = useCallback(
-    (e: React.FormEvent) => {
-      e.preventDefault();
-      form.handleSubmit(onSubmit)();
-    },
-    [form, onSubmit],
+    [hotel, room, startUpload, router, handleDialogOpen],
   );
 
   return (
-    <Form className="space-y-6" form={form} onSubmit={handleFormSubmit}>
+    <Form
+      className="space-y-6"
+      form={form}
+      onSubmit={(e) => e.preventDefault()}
+    >
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <div className="flex flex-col gap-6">
           <FormField
@@ -490,18 +535,65 @@ export default function AddRoomForm({
                 />
               ))}
             </div>
+            {(form.formState.errors as Record<string, { message?: string }>)
+              .amenities && (
+              <p className="mt-2 text-[0.8rem] font-medium text-destructive">
+                {
+                  (
+                    form.formState.errors as Record<
+                      string,
+                      { message?: string }
+                    >
+                  ).amenities?.message
+                }
+              </p>
+            )}
           </div>
         </div>
       </div>
-      <div className="flex justify-end">
-        <Button disabled={isLoading} type="submit">
-          {isLoading ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          ) : (
-            <Plus className="mr-2 h-4 w-4" />
-          )}
-          {isLoading ? "Đang tạo..." : "Tạo phòng"}
-        </Button>
+      <div className="flex items-center gap-4 pt-4 pb-2">
+        {room ? (
+          <Button
+            disabled={isLoading}
+            onClick={() => form.handleSubmit(onSubmit)()}
+            type="button"
+          >
+            {isLoading ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <PencilLine className="mr-2 h-4 w-4" />
+            )}
+            {isLoading ? "Đang cập nhật..." : "Cập nhật phòng"}
+          </Button>
+        ) : (
+          <Button
+            disabled={isLoading}
+            onClick={() => form.handleSubmit(onSubmit)()}
+            type="button"
+          >
+            {isLoading ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Plus className="mr-2 h-4 w-4" />
+            )}
+            {isLoading ? "Đang tạo..." : "Tạo phòng"}
+          </Button>
+        )}
+        {room && (
+          <Button
+            disabled={isLoading}
+            onClick={handleDialogOpen}
+            type="button"
+            variant="destructive"
+          >
+            {isLoading ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Trash2 className="mr-2 h-4 w-4" />
+            )}
+            Xóa
+          </Button>
+        )}
       </div>
     </Form>
   );
