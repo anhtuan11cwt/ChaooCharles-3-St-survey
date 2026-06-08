@@ -1,4 +1,5 @@
 import { getHotelById } from "@/actions/getHotelById";
+import Container from "@/components/Container";
 import type { HotelWithRooms } from "@/components/hotel/addHotelForm";
 import AddHotelForm from "@/components/hotel/addHotelForm";
 import { requireAuth } from "@/lib/auth";
@@ -29,8 +30,10 @@ export default async function HotelPage({ params }: HotelPageProps) {
 	}
 
 	return (
-		<section className="mx-auto flex min-h-[80vh] max-w-7xl flex-col px-4 py-8">
-			<AddHotelForm hotel={hotel} />
+		<section className="flex min-h-[80vh] flex-col py-8">
+			<Container>
+				<AddHotelForm hotel={hotel} />
+			</Container>
 		</section>
 	);
 }
