@@ -8,8 +8,9 @@ import { cn } from "@/lib/utils";
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
-	description: "Ứng dụng khảo sát 3 giai đoạn",
-	title: "Khảo sát 3 giai đoạn",
+	description: "Book a hotel of your choice",
+	icons: "/assets/favicon.svg",
+	title: "Stay Savvy",
 };
 
 // Layout gốc, bao gồm Navbar và toast
@@ -25,8 +26,10 @@ export default function RootLayout({
 			suppressHydrationWarning
 		>
 			<body className="min-h-full">
-				<Navbar />
-				{children}
+				<main className="flex min-h-screen flex-col bg-secondary">
+					<Navbar />
+					<section className="flex-grow">{children}</section>
+				</main>
 				<Toaster position="top-right" />
 			</body>
 		</html>
