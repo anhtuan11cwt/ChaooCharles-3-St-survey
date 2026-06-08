@@ -1,12 +1,12 @@
 // Layout chung cho các trang auth
 export default function AuthLayout({
-	children,
+  children,
 }: {
-	children: React.ReactNode;
+  children: React.ReactNode;
 }) {
-	return (
-		<div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
-			{children}
-		</div>
-	);
+  return (
+    <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
+      {children}
+    </div>
+  );
 }

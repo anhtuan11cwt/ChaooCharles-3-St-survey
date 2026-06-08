@@ -4,33 +4,33 @@ import AddHotelForm from "@/components/hotel/addHotelForm";
 import { requireAuth } from "@/lib/auth";
 
 interface HotelPageProps {
-	params: Promise<{ hotelId: string }>;
+  params: Promise<{ hotelId: string }>;
 }
 
 export default async function HotelPage({ params }: HotelPageProps) {
-	const { hotelId } = await params;
+  const { hotelId } = await params;
 
-	const user = await requireAuth();
+  const user = await requireAuth();
 
-	let hotel: HotelWithRooms | null = null;
+  let hotel: HotelWithRooms | null = null;
 
-	if (hotelId !== "new") {
-		const existingHotel = await getHotelById(hotelId);
+  if (hotelId !== "new") {
+    const existingHotel = await getHotelById(hotelId);
 
-		if (!existingHotel) {
-			return <div>Không tìm thấy khách sạn</div>;
-		}
+    if (!existingHotel) {
+      return <div>Không tìm thấy khách sạn</div>;
+    }
 
-		if (existingHotel.userId !== user.id) {
-			return <div>Truy cập bị từ chối</div>;
-		}
+    if (existingHotel.userId !== user.id) {
+      return <div>Truy cập bị từ chối</div>;
+    }
 
-		hotel = existingHotel as HotelWithRooms;
-	}
+    hotel = existingHotel as HotelWithRooms;
+  }
 
-	return (
-		<section className="flex min-h-[80vh] flex-col py-8">
-			<AddHotelForm hotel={hotel} />
-		</section>
-	);
+  return (
+    <section className="flex min-h-[80vh] flex-col py-8">
+      <AddHotelForm hotel={hotel} />
+    </section>
+  );
 }
