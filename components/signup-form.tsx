@@ -104,9 +104,9 @@ export function SignUpForm({
 
 							<Field>
 								<FieldLabel htmlFor="password">Mật khẩu</FieldLabel>
-								<div className="relative">
+								<div className="relative flex h-9 items-center">
 									<Input
-										className="pr-10"
+										className="absolute inset-0 pr-10"
 										disabled={loading}
 										id="password"
 										onChange={(e) => setPassword(e.target.value)}
@@ -115,7 +115,7 @@ export function SignUpForm({
 										value={password}
 									/>
 									<Button
-										className="absolute right-1 top-1/2 -translate-y-1/2 size-8"
+										className="absolute right-1 size-8"
 										disabled={loading}
 										onClick={() => setShowPassword(!showPassword)}
 										size="icon"
@@ -136,9 +136,9 @@ export function SignUpForm({
 								<FieldLabel htmlFor="confirmPassword">
 									Xác nhận mật khẩu
 								</FieldLabel>
-								<div className="relative">
+								<div className="relative flex h-9 items-center">
 									<Input
-										className="pr-10"
+										className="absolute inset-0 pr-10"
 										disabled={loading}
 										id="confirmPassword"
 										onChange={(e) => setConfirmPassword(e.target.value)}
@@ -147,7 +147,7 @@ export function SignUpForm({
 										value={confirmPassword}
 									/>
 									<Button
-										className="absolute right-1 top-1/2 -translate-y-1/2 size-8"
+										className="absolute right-1 size-8"
 										disabled={loading}
 										onClick={() => setShowConfirmPassword(!showConfirmPassword)}
 										size="icon"
