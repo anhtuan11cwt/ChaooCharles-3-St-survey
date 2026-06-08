@@ -8,6 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import {
 	Form,
 	FormControl,
+	FormDescription,
 	FormField,
 	FormItem,
 	FormLabel,
@@ -118,63 +119,25 @@ export default function AddHotelForm({ hotel }: AddHotelFormProps) {
 	}
 
 	return (
-		<div>
-			<h2 className="mb-4 text-2xl font-bold">
-				{hotel ? "Cập nhật khách sạn" : "Tạo khách sạn mới"}
-			</h2>
-			<Form
-				className="space-y-7"
-				form={form}
-				onSubmit={form.handleSubmit(onSubmit)}
-			>
-				<FormField
-					control={form.control}
-					name="title"
-					render={({ field }) => (
-						<FormItem>
-							<FormLabel>Tiêu đề</FormLabel>
-							<FormControl>
-								<Input placeholder="Nhập tên khách sạn" {...field} />
-							</FormControl>
-							<FormMessage />
-						</FormItem>
-					)}
-				/>
-				<FormField
-					control={form.control}
-					name="description"
-					render={({ field }) => (
-						<FormItem>
-							<FormLabel>Mô tả</FormLabel>
-							<FormControl>
-								<Textarea placeholder="Nhập mô tả khách sạn" {...field} />
-							</FormControl>
-							<FormMessage />
-						</FormItem>
-					)}
-				/>
-				<FormField
-					control={form.control}
-					name="image"
-					render={({ field }) => (
-						<FormItem>
-							<FormLabel>Link hình ảnh</FormLabel>
-							<FormControl>
-								<Input placeholder="Nhập link hình ảnh" {...field} />
-							</FormControl>
-							<FormMessage />
-						</FormItem>
-					)}
-				/>
-				<div className="grid grid-cols-2 gap-4">
+		<Form
+			className="space-y-7"
+			form={form}
+			onSubmit={form.handleSubmit(onSubmit)}
+		>
+			<h3 className="text-lg font-semibold">
+				{hotel ? "Cập nhật khách sạn" : "Mô tả khách sạn"}
+			</h3>
+			<div className="mt-6 flex flex-col gap-6 md:flex-row">
+				<div className="flex flex-1 flex-col gap-6">
 					<FormField
 						control={form.control}
-						name="state"
+						name="title"
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>Tỉnh/Thành phố</FormLabel>
+								<FormLabel>Tiêu đề khách sạn</FormLabel>
+								<FormDescription>Nhập tên khách sạn của bạn</FormDescription>
 								<FormControl>
-									<Input placeholder="Nhập tỉnh/thành" {...field} />
+									<Input placeholder="Khách sạn Biển" {...field} />
 								</FormControl>
 								<FormMessage />
 							</FormItem>
@@ -182,60 +145,117 @@ export default function AddHotelForm({ hotel }: AddHotelFormProps) {
 					/>
 					<FormField
 						control={form.control}
-						name="city"
+						name="description"
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>Quận/Huyện</FormLabel>
+								<FormLabel>Mô tả khách sạn</FormLabel>
+								<FormDescription>
+									Cung cấp mô tả chi tiết về khách sạn của bạn
+								</FormDescription>
 								<FormControl>
-									<Input placeholder="Nhập quận/huyện" {...field} />
+									<Textarea placeholder="Mô tả khách sạn..." {...field} />
+								</FormControl>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
+					<FormField
+						control={form.control}
+						name="image"
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel>Link hình ảnh</FormLabel>
+								<FormDescription>
+									Đường dẫn đến hình ảnh khách sạn
+								</FormDescription>
+								<FormControl>
+									<Input
+										placeholder="https://example.com/image.jpg"
+										{...field}
+									/>
+								</FormControl>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
+					<div className="grid grid-cols-2 gap-4">
+						<FormField
+							control={form.control}
+							name="state"
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>Tỉnh/Thành phố</FormLabel>
+									<FormControl>
+										<Input placeholder="Tỉnh/thành" {...field} />
+									</FormControl>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
+						<FormField
+							control={form.control}
+							name="city"
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>Quận/Huyện</FormLabel>
+									<FormControl>
+										<Input placeholder="Quận/huyện" {...field} />
+									</FormControl>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
+					</div>
+					<FormField
+						control={form.control}
+						name="locationDescription"
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel>Mô tả vị trí</FormLabel>
+								<FormDescription>Mô tả vị trí của khách sạn</FormDescription>
+								<FormControl>
+									<Textarea placeholder="Mô tả vị trí..." {...field} />
 								</FormControl>
 								<FormMessage />
 							</FormItem>
 						)}
 					/>
 				</div>
-				<FormField
-					control={form.control}
-					name="locationDescription"
-					render={({ field }) => (
-						<FormItem>
-							<FormLabel>Mô tả vị trí</FormLabel>
-							<FormControl>
-								<Textarea placeholder="Nhập mô tả vị trí" {...field} />
-							</FormControl>
-							<FormMessage />
-						</FormItem>
-					)}
-				/>
-				<div>
-					<h3 className="mb-3 text-lg font-medium">Tiện ích</h3>
-					<div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
-						{amenities.map((amenity) => (
-							<FormField
-								control={form.control}
-								key={amenity.name}
-								name={amenity.name}
-								render={({ field }) => (
-									<FormItem className="flex flex-row items-center gap-3 space-y-0">
-										<FormControl>
-											<Checkbox
-												checked={field.value as boolean}
-												onCheckedChange={field.onChange}
-											/>
-										</FormControl>
-										<FormLabel className="font-normal">
-											{amenity.label}
-										</FormLabel>
-									</FormItem>
-								)}
-							/>
-						))}
+				<div className="flex flex-1 flex-col gap-6">
+					<div>
+						<FormLabel>Chọn tiện ích</FormLabel>
+						<FormDescription>
+							Chọn các tiện ích có sẵn tại khách sạn
+						</FormDescription>
+						<div className="mt-2 grid grid-cols-2 gap-4">
+							{amenities.map((amenity) => (
+								<FormField
+									control={form.control}
+									key={amenity.name}
+									name={amenity.name}
+									render={({ field }) => (
+										<FormItem className="flex flex-row items-center space-x-3 rounded-md border p-4">
+											<FormControl>
+												<Checkbox
+													checked={field.value as boolean}
+													className="mt-0.5"
+													onCheckedChange={field.onChange}
+												/>
+											</FormControl>
+											<FormLabel className="font-normal">
+												{amenity.label}
+											</FormLabel>
+										</FormItem>
+									)}
+								/>
+							))}
+						</div>
 					</div>
 				</div>
-				<Button className="w-full" type="submit">
-					{hotel ? "Cập nhật" : "Tạo mới"}
-				</Button>
-			</Form>
-		</div>
+			</div>
+			<Button className="mt-6 w-full" type="submit">
+				{hotel ? "Cập nhật" : "Tạo mới"}
+			</Button>
+		</Form>
 	);
 }
