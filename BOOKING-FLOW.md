@@ -2,7 +2,7 @@
 
 ## Tổng quan
 
-Chức năng đặt phòng cho phép người dùng chọn phòng, chọn ngày lưu trú, và thanh toán qua Stripe Checkout. Dữ liệu đặt phòng được lưu vào database và trạng thái thanh toán được cập nhật khi người dùng quay lại trang thành công.
+Chức năng đặt phòng cho phép người dùng chọn phòng, chọn ngày lưu trú, kiểm tra trùng lặp ngày, và thanh toán qua Stripe Checkout. Dữ liệu đặt phòng được lưu vào database và trạng thái thanh toán được cập nhật khi người dùng quay lại trang thành công.
 
 ---
 
@@ -15,7 +15,7 @@ Người dùng mở trang chi tiết khách sạn (/hotel-details/[hotelId])
   └── Hiển thị danh sách phòng (RoomCard)
         └── Chọn ngày đặt phòng (DateRangePicker)
               ├── Ngày quá khứ → bị disable
-              ├── Ngày đã đặt (từ database) → bị disable
+              ├── Ngày đã đặt (từ database, paymentStatus: "true") → bị disable
               └── Ngày đặt trước ngày trả → bị disable
 ```
 
@@ -26,6 +26,10 @@ Người dùng nhấn nút "Đặt phòng"
   └── handleBookRoom() trong RoomCard
         ├── Kiểm tra đã chọn ngày chưa
         ├── Kiểm tra thông tin khách sạn
+        ├── Kiểm tra trùng lặp ngày đặt (hasOverlap)
+        │     ├── GET /api/booking/{roomId} → lấy bookings đã thanh toán
+        │     ├── So sánh với ngày người dùng chọn
+        │     └── Nếu trùng → toast lỗi, dừng xử lý
         ├── Gọi POST /api/create-payment-intent
         │     ├── Tạo Stripe Checkout Session
         │     ├── Tạo booking trong database (paymentStatus: "false")
@@ -57,6 +61,46 @@ Trang /book-room/success
   ├── Hiển thị mã đơn hàng (session_id)
   ├── Nút "Xem đặt phòng" → /my-bookings
   └── Tự động redirect đến /my-bookings sau 3 giây
+```
+
+---
+
+## Kiểm tra trùng lặp ngày đặt phòng (Overlap Check)
+
+### Hàm hasOverlap
+
+```
+hasOverlap(startDate, endDate, dateRanges)
+  ├── Chuẩn hóa khoảng ngày cần kiểm tra
+  │     ├── start = startOfDay(startDate)
+  │     └── end = endOfDay(endDate)
+  ├── Duyệt qua từng khoảng đã đặt (dateRanges)
+  │     ├── Trường hợp 1: startDate mới nằm trong khoảng đã đặt
+  │     ├── Trường hợp 2: endDate mới nằm trong khoảng đã đặt
+  │     └── Trường hợp 3: Khoảng mới bao trùm khoảng đã đặt
+  └── Trả về true nếu có trùng, false nếu không
+```
+
+### API kiểm tra booking
+
+```
+GET /api/booking/{roomId}
+  ├── Lọc theo roomId
+  ├── Chỉ lấy booking có paymentStatus: "true"
+  ├── Chỉ lấy booking có endDate > yesterday
+  └── Trả về mảng bookings
+```
+
+### Xử lý khi phát hiện trùng lặp
+
+```
+handleBookRoom()
+  ├── Gọi GET /api/booking/{roomId}
+  ├── Map dữ liệu thành dateRanges [{startDate, endDate}]
+  ├── Gọi hasOverlap(date.from, date.to, dateRanges)
+  └── Nếu overlap = true
+        ├── Toast: "Ngày bạn chọn đã có người đặt"
+        └── Dừng xử lý, không redirect Stripe
 ```
 
 ---
@@ -101,6 +145,31 @@ Trang /book-room/success
 4. Tạo booking trong database với `paymentStatus: "false"`
 5. Trả về URL thanh toán
 
+### GET `/api/booking/[id]`
+
+**Mục đích:** Lấy danh sách bookings theo roomId (dùng để kiểm tra trùng lặp).
+
+**Params:** `id` = roomId
+
+**Response:**
+```json
+[
+  {
+    "id": "string",
+    "startDate": "2026-06-20T00:00:00.000Z",
+    "endDate": "2026-06-25T00:00:00.000Z",
+    "paymentStatus": "true",
+    ...
+  }
+]
+```
+
+**Luồng xử lý:**
+1. Kiểm tra id tồn tại
+2. Lấy ngày yesterday = today - 1
+3. Truy vấn Prisma: `roomId = id`, `paymentStatus = "true"`, `endDate > yesterday`
+4. Trả về mảng bookings
+
 ### POST `/api/verify-payment`
 
 **Mục đích:** Xác minh thanh toán và cập nhật trạng thái booking.
@@ -129,7 +198,7 @@ Trang /book-room/success
 
 ### PATCH `/api/booking/[id]`
 
-**Mục đích:** Cập nhật trạng thái thanh toán thành công (dùng choluồng Stripe Elements nếu cần).
+**Mục đích:** Cập nhật trạng thái thanh toán thành công.
 
 **Params:** `id` = paymentIntentId
 
@@ -182,7 +251,7 @@ app/
     ├── verify-payment/
     │   └── route.ts          # Xác minh thanh toán từ Stripe
     └── booking/[id]/
-        └── route.ts          # Cập nhật paymentStatus
+        └── route.ts          # GET bookings + PATCH paymentStatus + DELETE
 
 actions/
 ├── getHotelById.ts           # Lấy hotel theo ID
@@ -192,8 +261,11 @@ actions/
 
 components/
 ├── room/
-│   ├── room-card.tsx         # Hiển thị phòng + nút đặt phòng
+│   ├── room-card.tsx         # Hiển thị phòng + nút đặt phòng + hasOverlap()
 │   └── date-range-picker.tsx # Bộ chọn ngày
+├── booking/
+│   ├── book-room-client.tsx  # Client component cho trang đặt phòng
+│   └── room-payment-form.tsx # Form thanh toán Stripe Elements
 └── hotel/
     └── hotel-details-client.tsx # Hiển thị chi tiết khách sạn
 ```
@@ -204,6 +276,12 @@ components/
 
 ```
 RoomCard (chọn ngày, nhấn đặt phòng)
+  │
+  ├── GET /api/booking/{roomId}
+  │     └── Lấy bookings đã thanh toán
+  │
+  ├── hasOverlap() kiểm tra trùng lặp
+  │     └── Nếu trùng → toast lỗi, dừng lại
   │
   ├── POST /api/create-payment-intent
   │     ├── Stripe Checkout Session
@@ -259,8 +337,10 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 ## Lưu ý
 
 - Chỉ booking có `paymentStatus: "true"` mới được coi là đã thanh toán
-- Ngày đã có booking (dù chưa thanh toán) sẽ bị disable trên calendar
+- Ngày đã có booking (đã thanh toán) sẽ bị disable trên calendar
+- Kiểm tra trùng lặp chỉ xét các booking có `paymentStatus: "true"` và `endDate > yesterday`
 - Dữ liệu booking được lưu ngay khi tạo Checkout Session, trước khi thanh toán
 - Stripe Checkout Hosted Page xử lý hoàn toàn việc nhập thông tin thẻ
 - Trạng thái thanh toán được cập nhật khi user quay lại trang success (không dùng webhook)
 - Nếu user đóng trình duyệt trước khi quay lại trang success, paymentStatus sẽ không được cập nhật
+- Hàm `hasOverlap` kiểm tra 3 trường hợp: start trong range, end trong range, range mới bao trùm range cũ

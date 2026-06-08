@@ -1,7 +1,13 @@
 "use client";
 
 import axios from "axios";
-import { differenceInCalendarDays, eachDayOfInterval } from "date-fns";
+import {
+  differenceInCalendarDays,
+  eachDayOfInterval,
+  endOfDay,
+  isWithinInterval,
+  startOfDay,
+} from "date-fns";
 import {
   Bed,
   BedDouble,
@@ -46,6 +52,37 @@ import {
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import type { Booking, Room } from "@/lib/generated/prisma/client";
+
+type DateRangeType = { endDate: Date; startDate: Date }[];
+
+function hasOverlap(
+  startDate: Date,
+  endDate: Date,
+  dateRanges: DateRangeType,
+): boolean {
+  const targetInterval = {
+    end: endOfDay(endDate),
+    start: startOfDay(startDate),
+  };
+  for (const range of dateRanges) {
+    const rangeStart = startOfDay(range.startDate);
+    const rangeEnd = endOfDay(range.endDate);
+    if (
+      isWithinInterval(targetInterval.start, {
+        end: rangeEnd,
+        start: rangeStart,
+      }) ||
+      isWithinInterval(targetInterval.end, {
+        end: rangeEnd,
+        start: rangeStart,
+      }) ||
+      (targetInterval.start < rangeStart && targetInterval.end > rangeEnd)
+    ) {
+      return true;
+    }
+  }
+  return false;
+}
 
 interface RoomCardProps {
   bookings?: Booking[];
@@ -149,6 +186,18 @@ export default function RoomCard({
     }
     setBookingIsLoading(true);
     try {
+      const bookingsRes = await axios.get(`/api/booking/${room.id}`);
+      const roomBookings: DateRangeType = bookingsRes.data.map(
+        (b: { endDate: string; startDate: string }) => ({
+          endDate: new Date(b.endDate),
+          startDate: new Date(b.startDate),
+        }),
+      );
+      if (hasOverlap(date.from, date.to, roomBookings)) {
+        toast.error("Ngày bạn chọn đã có người đặt. Vui lòng chọn ngày khác.");
+        setBookingIsLoading(false);
+        return;
+      }
       const bookingData = {
         breakfastIncluded: includeBreakfast,
         endDate: date.to.toISOString(),
