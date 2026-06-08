@@ -24,6 +24,7 @@ import { useForm, useWatch } from "react-hook-form";
 import toast from "react-hot-toast";
 import * as z from "zod";
 import AddRoomForm from "@/components/room/add-room-form";
+import RoomCard from "@/components/room/room-card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -52,6 +53,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import useLocation, { type District, type Province } from "@/hooks/useLocation";
 import type { Hotel, Room } from "@/lib/generated/prisma/client";
@@ -650,6 +652,19 @@ export default function AddHotelForm({ hotel }: AddHotelFormProps) {
           </>
         )}
       </div>
+      {hotel && hotel.rooms.length > 0 && (
+        <>
+          <Separator className="bg-primary/10" />
+          <h3 className="text-lg font-semibold my-4">
+            Phòng khách sạn ({hotel.rooms.length})
+          </h3>
+          <div className="grid grid-cols-1 2xl:grid-cols-2 gap-6">
+            {hotel.rooms.map((room) => (
+              <RoomCard hotel={hotel} key={room.id} room={room} />
+            ))}
+          </div>
+        </>
+      )}
     </Form>
   );
 }
