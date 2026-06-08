@@ -15,6 +15,7 @@ import type { Booking } from "@/lib/generated/prisma/client";
 
 interface HotelDetailsClientProps {
   bookings: Booking[];
+  currentUserId?: string;
   hotel: HotelWithRooms;
 }
 
@@ -36,6 +37,7 @@ const amenitiesList = [
 export default function HotelDetailsClient({
   hotel,
   bookings,
+  currentUserId,
 }: HotelDetailsClientProps) {
   const getAmenities = () => {
     return amenitiesList.map((amenity) => ({
@@ -127,6 +129,7 @@ export default function HotelDetailsClient({
             {hotel.rooms.map((room) => (
               <RoomCard
                 bookings={bookings}
+                currentUserId={currentUserId}
                 hotel={hotel}
                 key={room.id}
                 room={room}

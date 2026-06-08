@@ -43,6 +43,13 @@ export async function POST(request: Request) {
       );
     }
 
+    if (room.hotel.userId === user.id) {
+      return NextResponse.json(
+        { error: "Bạn không thể đặt phòng trong khách sạn của chính mình" },
+        { status: 400 },
+      );
+    }
+
     const session = await stripe.checkout.sessions.create({
       cancel_url: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/hotel-details/${bookingData.hotelId}`,
       line_items: [

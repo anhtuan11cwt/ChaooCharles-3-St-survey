@@ -87,6 +87,7 @@ function hasOverlap(
 
 interface RoomCardProps {
   bookings?: Booking[];
+  currentUserId?: string;
   hotel?: HotelWithRooms;
   room: Room & { booking?: Booking[] };
 }
@@ -95,6 +96,7 @@ export default function RoomCard({
   hotel,
   room,
   bookings = [],
+  currentUserId,
 }: RoomCardProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -106,6 +108,7 @@ export default function RoomCard({
 
   const isHotelDetailsPage = pathname.includes("hotel-details");
   const isBookRoomPage = pathname.includes("book-room");
+  const isHotelOwner = !!currentUserId && currentUserId === hotel?.userId;
 
   const disabledDates = useMemo(() => {
     const days: Date[] = [];
@@ -365,18 +368,24 @@ export default function RoomCard({
                 Số ngày: <span className="font-bold">{days}</span>
               </p>
             </div>
-            <Button
-              disabled={bookingIsLoading}
-              onClick={handleBookRoom}
-              type="button"
-            >
-              {bookingIsLoading ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <Check className="mr-2 h-4 w-4" />
-              )}
-              {bookingIsLoading ? "Đang xử lý..." : "Đặt phòng"}
-            </Button>
+            {isHotelOwner ? (
+              <p className="text-sm text-muted-foreground italic">
+                Bạn là chủ khách sạn này, không thể đặt phòng.
+              </p>
+            ) : (
+              <Button
+                disabled={bookingIsLoading}
+                onClick={handleBookRoom}
+                type="button"
+              >
+                {bookingIsLoading ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Check className="mr-2 h-4 w-4" />
+                )}
+                {bookingIsLoading ? "Đang xử lý..." : "Đặt phòng"}
+              </Button>
+            )}
           </CardFooter>
         ) : (
           <CardFooter className="gap-4">

@@ -1,6 +1,7 @@
 import { getBookings } from "@/actions/get-bookings";
 import { getHotelById } from "@/actions/getHotelById";
 import HotelDetailsClient from "@/components/hotel/hotel-details-client";
+import { getCurrentUser } from "@/lib/auth";
 
 interface HotelDetailsProps {
   params: Promise<{ hotelId: string }>;
@@ -10,6 +11,7 @@ export default async function HotelDetails(props: HotelDetailsProps) {
   const { hotelId } = await props.params;
   const hotel = await getHotelById(hotelId);
   const bookings = await getBookings(hotelId);
+  const currentUser = await getCurrentUser();
 
   if (!hotel) {
     return (
@@ -21,5 +23,11 @@ export default async function HotelDetails(props: HotelDetailsProps) {
     );
   }
 
-  return <HotelDetailsClient bookings={bookings} hotel={hotel} />;
+  return (
+    <HotelDetailsClient
+      bookings={bookings}
+      currentUserId={currentUser?.id}
+      hotel={hotel}
+    />
+  );
 }
