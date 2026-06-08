@@ -1,11 +1,9 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
 import "./globals.css";
 import { Inter } from "next/font/google";
 import { Toaster } from "react-hot-toast";
 import Container from "@/components/Container";
 import Navbar from "@/components/layout/Navbar";
-import LocationFilter from "@/components/location-filter";
 import { ThemeProvider } from "@/components/theme-provider";
 import { cn } from "@/lib/utils";
 
@@ -38,9 +36,6 @@ export default function RootLayout({
         >
           <main className="flex min-h-screen flex-col bg-secondary">
             <Navbar />
-            <Suspense>
-              <LocationFilter />
-            </Suspense>
             <section className="flex-grow">
               <Container>{children}</Container>
             </section>

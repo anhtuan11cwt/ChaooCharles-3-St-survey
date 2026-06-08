@@ -92,20 +92,18 @@ export default function LocationFilter() {
           </SelectContent>
         </Select>
 
-        {districts.length > 0 && (
-          <Select onValueChange={handleCityChange} value={city}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Quận / Huyện" />
-            </SelectTrigger>
-            <SelectContent>
-              {districts.map((d) => (
-                <SelectItem key={d.idDistrict} value={d.idDistrict}>
-                  {d.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
+        <Select onValueChange={handleCityChange} value={city}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Quận / Huyện" />
+          </SelectTrigger>
+          <SelectContent>
+            {districts.map((d) => (
+              <SelectItem key={d.idDistrict} value={d.idDistrict}>
+                {d.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
         {(state || city) && (
           <Button onClick={handleClear} variant="outline">
