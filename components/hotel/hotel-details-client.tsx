@@ -19,6 +19,7 @@ interface HotelDetailsClientProps {
   hotel: HotelWithRooms;
 }
 
+// Danh sách tiện ích với icon và tên hiển thị
 const amenitiesList = [
   { available: false, icon: FaDumbbell, label: "Phòng tập gym" },
   { available: false, icon: FaSpa, label: "Spa" },
@@ -34,6 +35,7 @@ const amenitiesList = [
   { available: false, icon: Coffee, label: "Quán cà phê" },
 ] as const;
 
+// Trang chi tiết khách sạn — hiển thị ảnh, thông tin, tiện ích và danh sách phòng
 export default function HotelDetailsClient({
   hotel,
   bookings,

@@ -12,6 +12,7 @@ interface HotelCardProps {
   hotel: HotelWithRooms;
 }
 
+// Card hiển thị thông tin tóm tắt của khách sạn (ảnh, tên, vị trí, giá)
 export default function HotelCard({ hotel }: HotelCardProps) {
   const router = useRouter();
   const pathname = usePathname();

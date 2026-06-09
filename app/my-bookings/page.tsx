@@ -4,6 +4,7 @@ import MyBookingClient from "@/components/booking/my-booking-client";
 
 export const dynamic = "force-dynamic";
 
+// Trang quản lý đặt phòng — booking của user và booking trên KS của user
 export default async function MyBookingsPage() {
   const bookingsIMade = await getBookingsByUserId();
   const bookingsFromVisitors = await getBookingsByHotelOwnerId();

@@ -11,6 +11,7 @@ interface HomeProps {
   }>;
 }
 
+// Trang chủ — hiển thị danh sách khách sạn với bộ lọc vị trí
 export default async function Home(props: HomeProps) {
   const searchParams = await props.searchParams;
   const hotels = await getHotels(searchParams);

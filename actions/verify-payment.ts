@@ -5,6 +5,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? "", {
   typescript: true,
 });
 
+// Xác minh thanh toán từ Stripe session, cập nhật paymentStatus nếu thành công
 export async function verifyPayment(sessionId: string) {
   try {
     const session = await stripe.checkout.sessions.retrieve(sessionId);

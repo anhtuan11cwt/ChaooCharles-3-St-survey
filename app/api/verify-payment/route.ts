@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { verifyPayment } from "@/actions/verify-payment";
 
+// API xác minh thanh toán Stripe — gọi sau khi redirect từ Checkout
 export async function POST(request: Request) {
   try {
     const body = await request.json();

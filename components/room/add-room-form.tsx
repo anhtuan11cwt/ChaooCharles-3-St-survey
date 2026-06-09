@@ -36,6 +36,7 @@ interface AddRoomFormProps {
   room?: Room;
 }
 
+// Schema validation cho form thêm/sửa phòng
 const formSchema = z
   .object({
     airCondition: z.boolean().optional(),

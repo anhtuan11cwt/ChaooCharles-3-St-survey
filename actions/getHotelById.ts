@@ -1,6 +1,7 @@
 import { resolveLocationNames } from "@/lib/location-utils";
 import { prisma } from "@/lib/prisma";
 
+// Lấy chi tiết khách sạn theo ID (kèm rooms + booking)
 export async function getHotelById(hotelId: string) {
   try {
     const hotel = await prisma.hotel.findUnique({

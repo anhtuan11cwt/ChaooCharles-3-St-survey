@@ -8,6 +8,7 @@ import {
 
 export type { District, Province };
 
+// Hook lấy dữ liệu tỉnh/huyện Việt Nam (dùng cho select box)
 export default function useLocation() {
   const fetchAllProvinces = useCallback(async (): Promise<Province[]> => {
     return getAllProvince();

@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 
+// Input tìm kiếm khách sạn — chỉ hiển thị trên trang chủ
 export default function SearchInput() {
   const pathname = usePathname();
   const router = useRouter();
@@ -15,13 +16,13 @@ export default function SearchInput() {
   const title = searchParams.get("title") ?? "";
 
   const [value, setValue] = useState(title);
-
   const debouncedValue = useDebouncedValue(value);
 
   const onChange = (e: ChangeEvent<HTMLInputElement>) => {
     setValue(e.target.value);
   };
 
+  // Cập nhật URL query sau khi debounce
   useEffect(() => {
     const url = Qs.stringifyUrl(
       {

@@ -16,6 +16,7 @@ type User = {
   name: string | null;
 };
 
+// Navbar chính: hiển thị logo, search, theme toggle, auth buttons / user menu
 export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();

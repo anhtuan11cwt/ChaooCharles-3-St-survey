@@ -21,6 +21,7 @@ interface RoomPaymentFormProps {
   resetBookRoom: () => void;
 }
 
+// Form thanh toán Stripe — xử lý submit payment + cập nhật booking
 export default function RoomPaymentForm({
   handleSetPaymentSuccess,
   bookingRoomData,

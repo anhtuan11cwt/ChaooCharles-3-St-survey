@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
+// Cập nhật thông tin khách sạn
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ hotelId: string }> },
@@ -31,6 +32,7 @@ export async function PATCH(
   }
 }
 
+// Xoá khách sạn
 export async function DELETE(
   _request: Request,
   { params }: { params: Promise<{ hotelId: string }> },

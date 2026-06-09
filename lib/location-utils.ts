@@ -3,6 +3,7 @@ import {
   getDistrictsByProvinceId,
 } from "vietnam-divisions-js/provinces";
 
+// Cache dữ liệu tỉnh/huyện để tránh gọi API nhiều lần
 let provincesCache: { idProvince: string; name: string }[] | null = null;
 const districtsCache = new Map<
   string,
@@ -39,6 +40,7 @@ export async function resolveDistrictName(
   return district?.name ?? districtId;
 }
 
+// Lấy tên tỉnh và huyện từ mã ID
 export async function resolveLocationNames(
   stateId: string,
   cityId: string,

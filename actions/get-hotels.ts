@@ -7,6 +7,7 @@ interface SearchParams {
   title?: string;
 }
 
+// Lấy danh sách khách sạn theo bộ lọc (title, state, city)
 export const getHotels = async (searchParams: SearchParams = {}) => {
   try {
     const { title, state, city } = searchParams;
@@ -20,6 +21,7 @@ export const getHotels = async (searchParams: SearchParams = {}) => {
       },
     });
 
+    // Map mã tỉnh/huyện thành tên hiển thị
     const hotelsWithNames = await Promise.all(
       hotels.map(async (hotel) => {
         const { stateName, cityName } = await resolveLocationNames(

@@ -20,6 +20,7 @@ interface DateRangePickerProps {
   setDate: React.Dispatch<React.SetStateAction<DateRange | undefined>>;
 }
 
+// Picker chọn khoảng ngày đặt phòng (locale Việt Nam)
 export default function DateRangePicker({
   className,
   date,

@@ -12,6 +12,7 @@ const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? "",
 );
 
+// Client trang thanh toán — hiển thị thông tin phòng + form Stripe
 export default function BookRoomClient() {
   const router = useRouter();
   const { bookingRoomData, clientSecret, resetBookRoom } = useBookRoom();

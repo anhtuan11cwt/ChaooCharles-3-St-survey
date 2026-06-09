@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
+// Lấy booking còn hiệu lực của một phòng (dùng để kiểm tra overlap)
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ id: string }> },
@@ -29,6 +30,7 @@ export async function GET(
   }
 }
 
+// Cập nhật paymentStatus thành "true" sau khi thanh toán Stripe thành công
 export async function PATCH(
   _request: Request,
   { params }: { params: Promise<{ id: string }> },
@@ -51,6 +53,7 @@ export async function PATCH(
   }
 }
 
+// Xoá booking
 export async function DELETE(
   _request: Request,
   { params }: { params: Promise<{ id: string }> },

@@ -17,6 +17,7 @@ const publicRoutes = [
   "/hotel-details",
 ];
 
+// Middleware kiểm tra đăng nhập — redirect nếu chưa xác thực
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 

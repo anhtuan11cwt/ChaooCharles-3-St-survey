@@ -1,4 +1,4 @@
-// Layout chung cho các trang auth
+// Layout chung cho các trang auth (đăng nhập, đăng ký) — căn giữa nội dung
 export default function AuthLayout({
   children,
 }: {

@@ -56,6 +56,7 @@ import { formatPrice } from "@/lib/utils";
 
 type DateRangeType = { endDate: Date; startDate: Date }[];
 
+// Kiểm tra khoảng ngày mới có overlap với các booking hiện có không
 function hasOverlap(
   startDate: Date,
   endDate: Date,
@@ -92,6 +93,7 @@ interface RoomCardProps {
   room: Room & { booking?: Booking[] };
 }
 
+// Card hiển thị thông tin phòng — cho phép đặt phòng, sửa, xoá
 export default function RoomCard({
   hotel,
   room,
@@ -110,6 +112,7 @@ export default function RoomCard({
   const isBookRoomPage = pathname.includes("book-room");
   const isHotelOwner = !!currentUserId && currentUserId === hotel?.userId;
 
+  // Tính các ngày đã bị book để disable trên lịch
   const disabledDates = useMemo(() => {
     const days: Date[] = [];
     const today = new Date();

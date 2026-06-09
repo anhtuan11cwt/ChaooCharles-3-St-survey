@@ -8,6 +8,7 @@ datasource db {
   relationMode   = "prisma"
 }
 
+// Người dùng
 model User {
   id        String    @id @default(cuid())
   email     String    @unique
@@ -18,6 +19,7 @@ model User {
   sessions  Session[]
 }
 
+// Phiên đăng nhập (JWT)
 model Session {
   id        String   @id @default(cuid())
   userId    String
@@ -27,14 +29,15 @@ model Session {
   createdAt DateTime @default(now())
 }
 
+// Khách sạn
 model Hotel {
   id                  String   @id @default(uuid())
   userId              String
   title               String   @db.Text
   description         String   @db.LongText
   image               String
-  state               String
-  city                String
+  state               String   // Mã tỉnh/thành phố
+  city                String   // Mã quận/huyện
   locationDescription String   @db.LongText
   gym                 Boolean  @default(false)
   spa                 Boolean  @default(false)
@@ -56,6 +59,7 @@ model Hotel {
   @@fulltext([title])
 }
 
+// Phòng
 model Room {
   id             String   @id @default(uuid())
   title          String
@@ -63,10 +67,10 @@ model Room {
   bedCount       Int      @default(0)
   guestCount     Int
   bathroomCount  Int
-  kingBed        Int
-  queenBed       Int
+  kingBed        Int      // Giường lớn
+  queenBed       Int      // Giường trung
   image          String
-  breakfastPrice Int
+  breakfastPrice Int      // Giá bữa sáng thêm
   roomPrice      Int
   roomService    Boolean  @default(false)
   tv             Boolean  @default(false)
@@ -85,6 +89,7 @@ model Room {
   @@index([hotelId])
 }
 
+// Đặt phòng
 model Booking {
   id                String   @id @default(uuid())
   userName          String
@@ -92,13 +97,13 @@ model Booking {
   userId            String
   hotelId           String
   roomId            String
-  hotelOwnerId      String
+  hotelOwnerId      String   // Chủ khách sạn nhận booking
   startDate         DateTime
   endDate           DateTime
   breakfastIncluded Boolean
   currency          String
   totalPrice        Int
-  paymentStatus     String
+  paymentStatus     String   // "true" / "false"
   paymentIntentId   String   @unique
   bookedAt          DateTime @default(now())
   hotel             Hotel    @relation(fields: [hotelId], references: [id])

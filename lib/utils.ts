@@ -1,12 +1,12 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
-// Gộp className với tailwind
+// Gộp className — ưu tiên class sau ghi đè class trước (Tailwind)
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-// Định dạng tiền tệ theo kiểu Việt Nam (1.000.000 ₫)
+// Format số theo kiểu Việt Nam (VD: 1.000.000 ₫)
 export function formatPrice(price: number): string {
   return `${new Intl.NumberFormat("vi-VN").format(price)} ₫`;
 }

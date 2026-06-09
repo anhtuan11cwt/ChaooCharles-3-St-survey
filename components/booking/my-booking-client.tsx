@@ -29,6 +29,7 @@ interface MyBookingClientProps {
   };
 }
 
+// Card hiển thị chi tiết một booking (hotel, room, ngày, giá, trạng thái thanh toán)
 export default function MyBookingClient({ booking }: MyBookingClientProps) {
   const router = useRouter();
   const [paymentLoading, setPaymentLoading] = useState(false);

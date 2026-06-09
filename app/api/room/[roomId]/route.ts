@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
+// Cập nhật thông tin phòng
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ roomId: string }> },
@@ -28,6 +29,7 @@ export async function PATCH(
   }
 }
 
+// Xoá phòng
 export async function DELETE(
   _request: Request,
   { params }: { params: Promise<{ roomId: string }> },

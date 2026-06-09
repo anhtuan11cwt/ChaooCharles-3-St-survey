@@ -5,12 +5,14 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 
+// Nội dung trang thành công — xác minh payment và tự động redirect
 function SuccessContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const sessionId = searchParams.get("session_id");
   const [verified, setVerified] = useState(false);
 
+  // Xác minh thanh toán với server
   useEffect(() => {
     if (sessionId && !verified) {
       axios
@@ -24,6 +26,7 @@ function SuccessContent() {
     }
   }, [sessionId, verified]);
 
+  // Tự động chuyển về my-bookings sau 3 giây
   useEffect(() => {
     const timer = setTimeout(() => {
       router.push("/my-bookings");
@@ -57,6 +60,7 @@ function SuccessContent() {
   );
 }
 
+// Trang success — bọc Suspense vì dùng useSearchParams
 export default function BookRoomSuccessPage() {
   return (
     <Suspense

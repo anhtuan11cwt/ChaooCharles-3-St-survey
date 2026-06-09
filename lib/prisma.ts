@@ -1,7 +1,7 @@
 import { PrismaMariaDb } from "@prisma/adapter-mariadb";
 import { PrismaClient } from "@/lib/generated/prisma/client";
 
-// Singleton để tránh tạo nhiều instance PrismaClient
+// Singleton — tránh tạo nhiều instance PrismaClient khi hot-reload
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
@@ -14,6 +14,7 @@ function createPrismaClient() {
 
 export const prisma = globalForPrisma.prisma ?? createPrismaClient();
 
+// Giữ instance trong global scope khi dev để tránh recreate
 if (process.env.NODE_ENV !== "production") {
   globalForPrisma.prisma = prisma;
 }

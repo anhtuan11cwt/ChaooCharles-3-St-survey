@@ -7,6 +7,7 @@ interface HotelPageProps {
   params: Promise<{ hotelId: string }>;
 }
 
+// Trang tạo / chỉnh sửa khách sạn (hotelId = "new" là tạo mới)
 export default async function HotelPage({ params }: HotelPageProps) {
   const { hotelId } = await params;
 

@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   title: "Stay Savvy",
 };
 
-// Layout gốc, bao gồm Navbar và toast
+// Layout gốc: inter font, ThemeProvider, Navbar, Container, Toast
 export default function RootLayout({
   children,
 }: Readonly<{

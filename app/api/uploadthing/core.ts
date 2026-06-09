@@ -4,6 +4,7 @@ import { getCurrentUser } from "@/lib/auth";
 
 const f = createUploadthing();
 
+// Upload router — chỉ cho phép user đã đăng nhập upload ảnh (tối đa 8MB)
 export const ourFileRouter = {
   imageUploader: f({
     image: { maxFileCount: 1, maxFileSize: "8MB" },

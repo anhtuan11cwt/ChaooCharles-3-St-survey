@@ -20,6 +20,7 @@ export interface BookRoomStore {
   setRoomData: (data: RoomDataType) => void;
 }
 
+// Store toàn cục cho quy trình đặt phòng (dùng persist để giữ state khi chuyển trang)
 const useBookRoom = create<BookRoomStore>()(
   persist(
     (set) => ({

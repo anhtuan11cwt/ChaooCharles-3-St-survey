@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 
+// Lấy booking còn hiệu lực (endDate > hôm qua) của một khách sạn
 export const getBookings = async (hotelId: string) => {
   try {
     const yesterday = new Date();

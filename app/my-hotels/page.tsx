@@ -3,6 +3,7 @@ import HotelList from "@/components/hotel/hotel-list";
 
 export const dynamic = "force-dynamic";
 
+// Trang danh sách khách sạn của user — yêu cầu đăng nhập
 export default async function MyHotelsPage() {
   const hotels = await getHotelsByUserId();
 

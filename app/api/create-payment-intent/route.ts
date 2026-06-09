@@ -3,6 +3,7 @@ import Stripe from "stripe";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
+// Format ngày DD/MM/YYYY cho Stripe description
 function formatDate(dateStr: string): string {
   const d = new Date(dateStr);
   return `${d.getDate().toString().padStart(2, "0")}/${(d.getMonth() + 1).toString().padStart(2, "0")}/${d.getFullYear()}`;
@@ -12,6 +13,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? "", {
   typescript: true,
 });
 
+// Tạo Stripe Checkout Session + tạo booking record
 export async function POST(request: Request) {
   const user = await getCurrentUser();
   if (!user) {
@@ -82,6 +84,7 @@ export async function POST(request: Request) {
       success_url: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/book-room/success?session_id={CHECKOUT_SESSION_ID}`,
     });
 
+    // Tạo booking record trong DB
     await prisma.booking.create({
       data: {
         breakfastIncluded: bookingData.breakfastIncluded,

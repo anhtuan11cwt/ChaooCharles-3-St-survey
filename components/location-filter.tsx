@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/select";
 import useLocation, { type District, type Province } from "@/hooks/useLocation";
 
+// Bộ lọc khách sạn theo tỉnh/thành phố và quận/huyện
 export default function LocationFilter() {
   const router = useRouter();
   const searchParams = useSearchParams();

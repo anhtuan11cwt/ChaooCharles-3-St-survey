@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
+// Menu điều hướng cho user đã đăng nhập (thêm KS, KS của tôi, đặt chỗ)
 export default function NavMenu() {
   const router = useRouter();
 

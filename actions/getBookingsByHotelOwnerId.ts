@@ -2,6 +2,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { resolveLocationNames } from "@/lib/location-utils";
 import { prisma } from "@/lib/prisma";
 
+// Lấy booking từ khách trên các khách sạn mình sở hữu
 export const getBookingsByHotelOwnerId = async () => {
   try {
     const user = await getCurrentUser();

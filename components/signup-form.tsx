@@ -21,6 +21,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
+// Form đăng ký — gửi POST /api/auth/register
 export function SignUpForm({
   className,
   ...props

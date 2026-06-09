@@ -58,6 +58,7 @@ import { Textarea } from "@/components/ui/textarea";
 import useLocation, { type District, type Province } from "@/hooks/useLocation";
 import type { Booking, Hotel, Room } from "@/lib/generated/prisma/client";
 
+// Type mở rộng Hotel kèm rooms và booking
 export type HotelWithRooms = Hotel & {
   rooms: (Room & { booking: Booking[] })[];
   stateName?: string;
@@ -68,6 +69,7 @@ interface AddHotelFormProps {
   hotel: HotelWithRooms | null;
 }
 
+// Schema validation cho form thêm/sửa khách sạn
 const formSchema = z
   .object({
     bar: z.boolean(),

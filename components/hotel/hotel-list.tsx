@@ -5,6 +5,7 @@ interface HotelListProps {
   hotels: HotelWithRooms[];
 }
 
+// Grid hiển thị danh sách khách sạn dưới dạng card
 export default function HotelList({ hotels }: HotelListProps) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-8 gap-y-12 mt-4">

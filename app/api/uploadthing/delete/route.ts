@@ -4,6 +4,7 @@ import { getCurrentUser } from "@/lib/auth";
 
 const utapi = new UTApi();
 
+// Xoá ảnh đã upload trên UploadThing
 export async function POST(request: Request) {
   const user = await getCurrentUser();
   if (!user) {

@@ -7,6 +7,7 @@ interface HotelDetailsProps {
   params: Promise<{ hotelId: string }>;
 }
 
+// Trang chi tiết khách sạn — server component lấy dữ liệu và render client component
 export default async function HotelDetails(props: HotelDetailsProps) {
   const { hotelId } = await props.params;
   const hotel = await getHotelById(hotelId);

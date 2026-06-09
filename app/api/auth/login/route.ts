@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { comparePassword, createSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-// Đăng nhập
+// Xác thực email + password, tạo session mới
 export async function POST(request: Request) {
   const { email, password } = await request.json();
 
